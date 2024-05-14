@@ -1,8 +1,11 @@
-<p>page auth</p>
+<div class="min-h-screen bg-[#fffbfb]">
+    <br>
+    <div class="mt-40">
+        <app-login *ngIf="isLoginPage()"></app-login>
+        <app-register *ngIf="isRegisterPage()"></app-register>
+        <app-forgot-password *ngIf="isForgotPasswordPage()"></app-forgot-password>
+        <app-reset-password *ngIf="isResetPasswordPage()"></app-reset-password>
+    </div>
 
-<div>
-    <app-login *ngIf="isLoginPage()"></app-login>
-    <app-register *ngIf="isRegisterPage()"></app-register>
-    <app-forgot-password *ngIf="isForgotPasswordPage()"></app-forgot-password>
-    <app-reset-password *ngIf="isResetPasswordPage()"></app-reset-password>
+    <app-error-modal [isOpen]="isErrorModalOpen" [title]="errorModalTitle" [text]="errorModalText" (closeModalEvent)="isErrorModalOpen = false"></app-error-modal>
 </div>

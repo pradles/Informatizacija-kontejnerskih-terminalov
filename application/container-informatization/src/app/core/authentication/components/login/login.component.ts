@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { PageAuthComponent } from '../../pages/page-auth/page-auth.component';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +14,8 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent implements OnInit{
 
+
+  pageAuth = inject(PageAuthComponent);
   fb = inject(FormBuilder); // inject() Replaces constructor
   authService = inject(AuthService);
   router = inject(Router);
@@ -30,20 +33,25 @@ export class LoginComponent implements OnInit{
   login() {
     this.loginFormSubmitted = true;
 
-    this.authService.loginService(this.loginForm.value)
-    .subscribe({
-      next:(res)=>{
-        console.log(res);
-        console.log(res.cookie)
-        localStorage.setItem("user_data", res.data);
-        localStorage.setItem("token", res.cookie);
-        this.loginForm.reset();
-        this.router.navigate(['test']);
-      },
-      error:(err)=>{
-        console.log(err);
-      }
-    });
+    if (this.loginForm.valid) {
+      this.authService.loginService(this.loginForm.value)
+      .subscribe({
+        next:(res)=>{
+          console.log(res);
+          console.log(res.cookie)
+          localStorage.setItem("user_data", res.data);
+          localStorage.setItem("token", res.cookie);
+          this.loginForm.reset();
+          this.router.navigate(['test']);
+        },
+        error:(err)=>{
+          this.pageAuth.openErrorModal(err.error.message);
+          console.log(err.error.message);
+        }
+      });
+    } else {
+      this.pageAuth.openErrorModal("Form filled out incorrectly");
+    }
   }
 
 }

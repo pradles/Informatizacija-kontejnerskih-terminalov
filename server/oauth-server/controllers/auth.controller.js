@@ -11,8 +11,9 @@ import UserToken from '../models/UserToken.js';
 
 export const register = async (req, res, next)=>{
     try {
-        const role = await Role.find({role: 'user'});
+        const roles = await Role.find({ _id: { $in: req.body.roles } });
         const salt = await bcrypt.genSalt(10);
+        console.log(req.body)
         const hashPassword = await bcrypt.hash(req.body.password, salt);
         const newUser = new User({
             firstName: req.body.firstName,
@@ -20,7 +21,7 @@ export const register = async (req, res, next)=>{
             username: req.body.username,
             email: req.body.email,
             password: hashPassword,
-            roles: role
+            roles: roles
         });
         await newUser.save();
         return next(CreateSuccess(200, "User registered successfully."))

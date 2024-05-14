@@ -33,3 +33,7 @@ export const verifyAdmin = (req, res, next)=>{
         }
     })
 }
+
+export const verifyRole = (req, res, next)=>{
+    next();
+}

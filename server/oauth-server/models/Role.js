@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, {Schema} from "mongoose";
 
 const RoleSchema = mongoose.Schema(
     {
@@ -6,6 +6,15 @@ const RoleSchema = mongoose.Schema(
             type: String,
             required: true,
             unique: true
+        },
+        terminals: {
+            type: [Schema.Types.ObjectId],
+            ref: "Terminal"
+        },
+        access: {
+            type: Number,
+            required: true,
+            default: 0
         }
     },
     {

@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { PageAuthComponent } from '../../pages/page-auth/page-auth.component';
+
 
 @Component({
   selector: 'app-forgot-password',
@@ -11,6 +13,7 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './forgot-password.component.css'
 })
 export class ForgotPasswordComponent implements OnInit{
+  pageAuth = inject(PageAuthComponent);
   fb = inject(FormBuilder); // inject() Replaces constructor
   authService = inject(AuthService);
 
@@ -27,15 +30,20 @@ export class ForgotPasswordComponent implements OnInit{
     this.forgetFormSubmitted = true;
     console.log(this.forgetForm.value)
 
-    this.authService.sendEmailService(this.forgetForm.value)
-    .subscribe({
-      next:(res)=>{
-        console.log(res);
-        this.forgetForm.reset();
-      },
-      error:(err)=>{
-        console.log(err);
-      }
-    });
+    if (this.forgetForm.valid) {
+      this.authService.sendEmailService(this.forgetForm.value)
+      .subscribe({
+        next:(res)=>{
+          console.log(res);
+          this.forgetForm.reset();
+        },
+        error:(err)=>{
+          this.pageAuth.openErrorModal(err.error.message);
+          console.log(err);
+        }
+      });
+    } else {
+      this.pageAuth.openErrorModal("Form filled out incorrectly");
+    }
   }
 }

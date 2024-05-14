@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { PageAuthComponent } from '../../pages/page-auth/page-auth.component';
+
 
 @Component({
   selector: 'app-reset-password',
@@ -13,6 +15,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 
 export class ResetPasswordComponent implements OnInit{
+  pageAuth = inject(PageAuthComponent);
   fb = inject(FormBuilder); // inject() Replaces constructor
   authService = inject(AuthService);
   activatedRoute = inject(ActivatedRoute);
@@ -40,17 +43,21 @@ export class ResetPasswordComponent implements OnInit{
       token: this.token,
       password: this.resetForm.value.password
     };
-
-    this.authService.resetPasswordService(resetObj)
-    .subscribe({
-      next:(res)=>{
-        console.log(res);
-        this.resetForm.reset();
-        this.router.navigate(['login']);
-      },
-      error:(err)=>{
-        console.log(err);
-      }
-    });
+    if (this.resetForm.valid) {
+      this.authService.resetPasswordService(resetObj)
+      .subscribe({
+        next:(res)=>{
+          console.log(res);
+          this.resetForm.reset();
+          this.router.navigate(['login']);
+        },
+        error:(err)=>{
+          this.pageAuth.openErrorModal(err.error.message);
+          console.log(err);
+        }
+      });
+    } else {
+      this.pageAuth.openErrorModal("Form filled out incorrectly");
+    }
   }
 }

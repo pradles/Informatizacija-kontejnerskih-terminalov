@@ -9,7 +9,7 @@ export class AuthService {
     http = inject(HttpClient);
 
     registerService(registerObj: any) {
-      return this.http.post<any>(`${apiUrls.AuthServiceApi}register`, registerObj, { withCredentials: true });
+      return this.http.post<any>(`${apiUrls.AuthServiceApi}register`, registerObj, {withCredentials:true} );
     }
 
     loginService(loginObj: any) {
