@@ -1,0 +1,37 @@
+<div class="w-full max-w-xs mx-auto">
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+      <h2 class="text-2xl mb-6">Register</h2>
+      <form [formGroup]="registerForm" class="gap-y-8" (ngSubmit)="register()">
+        <div>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="firstName" type="text" formControlName="firstName" placeholder="First Name">
+          <span *ngIf="registerForm.hasError('required', 'firstName') && (registerForm.controls['firstName'].dirty || registerFormSubmitted)" class="text-red-500">First Name is required</span>
+        </div>
+        <div>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="lastName" type="text" formControlName="lastName" placeholder="Last Name">
+          <span *ngIf="registerForm.hasError('required', 'lastName') && (registerForm.controls['lastName'].dirty || registerFormSubmitted)" class="text-red-500">Last Name is required</span>
+        </div>
+        <div>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="email" type="text" formControlName="email" placeholder="Email">
+          <span *ngIf="registerForm.hasError('required', 'email') && (registerForm.controls['email'].dirty || registerFormSubmitted)" class="text-red-500">Email is required</span>
+          <span *ngIf="registerForm.hasError('email', 'email')" class="text-red-500">Email is invalid</span>
+        </div>
+        <div>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="username" type="text" formControlName="username" placeholder="Username">
+            <span *ngIf="registerForm.hasError('required', 'username') && (registerForm.controls['username'].dirty || registerFormSubmitted)" class="text-red-500">Username is required</span>
+        </div>
+        <div>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="password" type="password" formControlName="password" placeholder="Password">
+            <span *ngIf="registerForm.hasError('required', 'password') && (registerForm.controls['password'].dirty || registerFormSubmitted)" class="text-red-500">Password is required</span>
+        </div>
+        <div>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="confirmPassword" type="password" formControlName="confirmPassword" placeholder="Confirm Password">
+            <span *ngIf="registerForm.value.password != registerForm.value.confirmPassword" class="text-red-500">Password must match</span>
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Register</button>
+        </div>
+      </form>
+    </div>
+</div>
+  

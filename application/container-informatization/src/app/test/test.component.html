@@ -1,0 +1,48 @@
+<p>test works!</p>
+<div class="m-10 p-6 bg-emerald-100 rounded-lg">
+    <p>Input the desired size</p>
+        <form #arrayForm="ngForm" (ngSubmit)="onSubmit(arrayForm)">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="xAxis">X Axis</label>
+                <input class=" rounded w-16" id="xAxis" name="xAxis" type="number" [(ngModel)]="formData.xAxis" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="yAxis">Y Axis</label>
+                <input class="rounded w-16" id="yAxis" name="yAxis" type="number" [(ngModel)]="formData.yAxis" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="zAxis">Z Axis</label>
+                <input class="rounded w-16" id="zAxis" name="zAxis" type="number" [(ngModel)]="formData.zAxis" required>
+            </div>
+            <div class="flex items-center justify-between">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Submit</button>
+            </div>
+        </form>
+
+    <hr class="my-6">
+
+    <div *ngIf="array3D" class="w-auto inline-block">
+        <table>
+            <tbody>
+                <tr *ngFor="let row of array3D; let x = index">
+                    <ng-container *ngFor="let col of row; let y = index">
+                        <td class="cell size-7 border border-white"
+                            (mousedown)="clickStarted(); changeColor(x,y,0)"
+                            (mouseup)="clickEnded()"
+                            (mouseover)="changeColorWithCheck(x,y,0)"
+                            [ngClass]="{
+                                'bg-cyan-300': array3D[x][y][0][2] === 0,
+                                'bg-yellow-400': array3D[x][y][0][2] === 1,
+                                'bg-red-500': array3D[x][y][0][2] === 2
+                            }"></td>
+                    </ng-container>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    
+
+</div>
+
+
