@@ -4,17 +4,19 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PageAuthComponent } from '../../pages/page-auth/page-auth.component';
-
+import { ValidatorsServiceService } from '../../services/validators.service.service';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ CommonModule, ReactiveFormsModule ],
+  imports: [ CommonModule, ReactiveFormsModule, RouterModule ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css'
 })
 
 export class ResetPasswordComponent implements OnInit{
+  validatorService = inject(ValidatorsServiceService)
   pageAuth = inject(PageAuthComponent);
   fb = inject(FormBuilder); // inject() Replaces constructor
   authService = inject(AuthService);
@@ -28,7 +30,14 @@ export class ResetPasswordComponent implements OnInit{
 
   ngOnInit(): void {
     this.resetForm = this.fb.group({
-      password: ['', Validators.required],
+      password: ['', Validators.compose([
+        Validators.required,
+        this.validatorService.uppercaseValidator(),
+        this.validatorService.lowercaseValidator(),
+        this.validatorService.numberValidator(),
+        this.validatorService.specialCharacterValidator(),
+        this.validatorService.minLengthValidator(8)
+      ])],
       confirmPassword: ['', Validators.required]
     });
 
@@ -52,12 +61,12 @@ export class ResetPasswordComponent implements OnInit{
           this.router.navigate(['login']);
         },
         error:(err)=>{
-          this.pageAuth.openErrorModal(err.error.message);
+          this.pageAuth.openErrorModal(err.error.message, "Try reseting the password again.");
           console.log(err);
         }
       });
     } else {
-      this.pageAuth.openErrorModal("Form filled out incorrectly");
+      this.pageAuth.openErrorModal("Form filled out incorrectly.");
     }
   }
 }

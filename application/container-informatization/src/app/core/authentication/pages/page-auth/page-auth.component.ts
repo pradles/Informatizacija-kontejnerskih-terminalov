@@ -40,10 +40,11 @@ export class PageAuthComponent{
 
   isErrorModalOpen: boolean = false;
   errorModalTitle!: string;
-  errorModalText: string = "Fill in the form again."
+  errorModalText!: string;
 
-  openErrorModal(error: string) {
+  openErrorModal(error: string, text: string = "Fill in the form again.") {
     this.errorModalTitle = error;
+    this.errorModalText = text;
     this.isErrorModalOpen = true;
   }
 

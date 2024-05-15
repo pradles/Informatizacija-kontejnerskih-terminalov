@@ -1,8 +1,8 @@
 <div class="w-full sm:max-w-xl max-w-sm mx-auto">
     <div class="bg-white shadow-sm rounded px-8 pt-6 pb-8 mb-4 border border-gray-100 hover:shadow-md transition ease-in-out">
     <h2 class="text-2xl mb-10">Register user</h2>
-    <div class="flex flex-col space-x-7 sm:flex-row">
-    <div class="w-1/2">
+    <div class="flex flex-col sm:space-x-7 sm:flex-row">
+    <div class="sm:w-1/2 w-full">
       <form [formGroup]="registerForm" class="gap-y-8" (ngSubmit)="register()">
         <div class="h-16">
           <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="firstName" type="text" formControlName="firstName" placeholder="First Name">
@@ -36,16 +36,16 @@
             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="confirmPassword" type="password" formControlName="confirmPassword" placeholder="Confirm Password">
             <span *ngIf="registerForm.value.password != registerForm.value.confirmPassword" class="text-red-500">Password must match</span>
         </div>
-        
-        <div class="flex items-center justify-between mt-4">
-          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" type="submit">Register</button>
-        </div>
+        <button class="invisible" type="submit"></button>
       </form>
     </div>
-    <div class="w-1/2">
+    <div class="sm:w-1/2 w-full">
         <app-role-selection (selectedRolesOutput)="handleSelectedRolesOutput($event)"></app-role-selection>
     </div>
     </div>
+    <div class="flex items-center justify-between sm:mt-0 mt-4">
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="register()">Register</button>
+      </div>
     </div>
 </div>
   

@@ -173,3 +173,29 @@ export const resetPassword = async (req, res, next)=>{
     }
 }
 
+export const getUserAccessNumbers = async (req, res, next) => {
+    const id = req.params.id; // Get the user ID from the request parameters
+    try {
+      // Find the user by ID and populate the 'roles' field
+      const user = await User.findById(id).populate('roles');
+  
+      if (!user) {
+        return next(CreateError(404, "User not found."))
+      }
+  
+      // Extract access numbers from each role
+      const accessNumbers = user.roles.reduce((acc, role) => {
+        // Ensure 'access' field exists and is a number
+        if (typeof role.access === 'number') {
+          acc.push(role.access);
+        }
+        return acc;
+      }, []);
+  
+      // Remove duplicates and return unique access numbers
+      const uniqueAccessNumbers = [...new Set(accessNumbers)];
+      return next(CreateSuccess(200, "Found acces numbers", uniqueAccessNumbers))
+    } catch (error) {
+      return next(CreateError(500, "Error fetching access numbers."))
+    }
+  };

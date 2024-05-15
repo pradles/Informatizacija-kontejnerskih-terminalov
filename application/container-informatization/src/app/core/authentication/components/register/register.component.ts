@@ -2,7 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
 import { PageAuthComponent } from '../../pages/page-auth/page-auth.component';
 import { ValidatorsServiceService } from '../../services/validators.service.service';
 import { RoleSelectionComponent } from '../../../../shared/components/role-selection/role-selection.component';
@@ -19,7 +18,6 @@ export class RegisterComponent implements OnInit{
   fb = inject(FormBuilder); // inject() Replaces constructor
   authService = inject(AuthService);
   validatorService = inject(ValidatorsServiceService);
-  router = inject(Router);
 
   registerFormSubmitted: boolean = false;
   registerForm !: FormGroup;
@@ -69,7 +67,6 @@ export class RegisterComponent implements OnInit{
           next:(res)=>{
             console.log(res)
             this.registerForm.reset();
-            this.router.navigate(['login']);
           },
           error:(err)=>{
             this.pageAuth.openErrorModal(err.error.message);

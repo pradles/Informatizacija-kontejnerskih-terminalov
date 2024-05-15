@@ -10,9 +10,9 @@
     </div>
 </div>
 
-<div class="w-full h-44 mt-8 p-2 bg-white shadow-sm rounded border border-gray-100 hover:shadow-md transition ease-in-out space-y-[0.5rem]">
+<div class="w-full h-44 mt-8 p-2 bg-white shadow-sm rounded border border-gray-100 hover:shadow-md transition ease-in-out  flex flex-wrap flex-none shrink-0 overflow-auto">
     <div *ngFor="let selectedRole of selectedRoles">
-        <div class="py-1 px-2 mx-1  bg-slate-100 rounded-md inline-block">{{ selectedRole }} <span class="cursor-pointer" (click)="removeRole(selectedRole)">🗙</span></div>
+        <div class="py-1 px-2 mx-1 my-1 bg-slate-100 rounded-md inline-block">{{ selectedRole }} <span class="cursor-pointer" (click)="removeRole(selectedRole)">🗙</span></div>
     </div>
 </div>
 

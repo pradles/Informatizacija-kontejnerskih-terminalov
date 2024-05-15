@@ -2,13 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { PageAuthComponent } from '../../pages/page-auth/page-auth.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ CommonModule, ReactiveFormsModule ],
+  imports: [ CommonModule, ReactiveFormsModule, RouterModule ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -38,9 +38,8 @@ export class LoginComponent implements OnInit{
       .subscribe({
         next:(res)=>{
           console.log(res);
-          console.log(res.cookie)
-          localStorage.setItem("user_data", res.data);
-          localStorage.setItem("token", res.cookie);
+          // localStorage.setItem("user_data", JSON.stringify(res.data));
+          localStorage.setItem("user_data", res.data._id);
           this.loginForm.reset();
           this.router.navigate(['test']);
         },
