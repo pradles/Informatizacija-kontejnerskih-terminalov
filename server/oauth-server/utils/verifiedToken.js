@@ -16,7 +16,9 @@ export const verifyToken = (req, res, next)=>{
 
 export const verifyUser = (req, res, next)=>{
     verifyToken(req, res, ()=>{
-        if(req.user.id === req.params.id || req.user.isAdmin) {
+        const decodedToken = jwt.decode(req.cookies.access_token);
+        const userIdFromToken = decodedToken.id;
+        if(userIdFromToken === req.params.id || req.user.isAdmin) {
             next();
         } else {
             return next(CreateError(403, "Token is not Authorized."));

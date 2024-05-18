@@ -17,24 +17,10 @@ import { ErrorModalComponent } from '../../../../shared/components/modals/error-
 })
 export class PageAuthComponent{
 
-  constructor( private route: ActivatedRoute) { }
+  route = inject(ActivatedRoute)
 
-  // Function to determine if the current route is 'login'
-  isLoginPage(): boolean {
-    return this.route.snapshot.url[0].path === 'login';
-  }
-
-  // Function to determine if the current route is 'register'
-  isRegisterPage(): boolean {
-    return this.route.snapshot.url[0].path === 'register';
-  }
-  // Function to determine if the current route is 'register'
-  isResetPasswordPage(): boolean {
-    return this.route.snapshot.url[0].path === 'reset-password';
-  }
-  // Function to determine if the current route is 'register'
-  isForgotPasswordPage(): boolean {
-    return this.route.snapshot.url[0].path === 'forgot-password';
+  isCurrentRoute(routeName: string): boolean {
+    return this.route.snapshot.url[0].path === routeName;
   }
 
 

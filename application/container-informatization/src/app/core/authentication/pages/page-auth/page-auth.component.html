@@ -1,10 +1,10 @@
 <div class="min-h-screen bg-[#fffbfb]">
     <br>
     <div class="mt-40">
-        <app-login *ngIf="isLoginPage()"></app-login>
-        <app-register *ngIf="isRegisterPage()"></app-register>
-        <app-forgot-password *ngIf="isForgotPasswordPage()"></app-forgot-password>
-        <app-reset-password *ngIf="isResetPasswordPage()"></app-reset-password>
+        <app-login *ngIf="isCurrentRoute('login')"></app-login>
+        <app-register *ngIf="isCurrentRoute('register')"></app-register>
+        <app-forgot-password *ngIf="isCurrentRoute('forgot-password')"></app-forgot-password>
+        <app-reset-password *ngIf="isCurrentRoute('reset-password')"></app-reset-password>
     </div>
 
     <app-error-modal [isOpen]="isErrorModalOpen" [title]="errorModalTitle" [text]="errorModalText" (closeModalEvent)="isErrorModalOpen = false"></app-error-modal>

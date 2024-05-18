@@ -8,7 +8,11 @@ import { apiUrls } from '../../../api.urls';
 export class TerminalService {
   http = inject(HttpClient);
 
-  getRolesService(terminalId: string) {
-    return this.http.get<any>(`${apiUrls.RoleServiceApi}${terminalId}`, {withCredentials:true} );
+  // getRolesService(terminalId: string) {
+  //   console.log("idk")
+  //   return this.http.get<any>(`${apiUrls.RoleServiceApi}${terminalId}`, {withCredentials:true} );
+  // }
+  getUserTerminals() {
+    return this.http.get<any>(`${apiUrls.UserServiceApi}terminal/${localStorage.getItem("user_data")}`, {withCredentials:true} );
   }
 }

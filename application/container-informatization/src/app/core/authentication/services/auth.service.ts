@@ -31,7 +31,20 @@ export class AuthService {
     }
 
     getAccessNumbers(userId: any) {
-      return this.http.get<any>(`${apiUrls.AuthServiceApi}get-access-numbers/${userId}`, {withCredentials:true});
+      return this.http.get<any>(`${apiUrls.AuthServiceApi}get-access-numbers/${userId}`,{withCredentials:true});
+    }
+
+    logOut() {
+      localStorage.clear();
+      console.log("clear")
+      console.log(document.cookie)
+
+      // Clear cookies (if any)
+      document.cookie.split(";").forEach(cookie => {
+        const cookieParts = cookie.split("=");
+        const cookieName = cookieParts[0].trim();
+        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      });
     }
 
     isLoggedIn() {
@@ -46,12 +59,11 @@ export class AuthService {
 
     getUserRoles(): Observable<string[]> {
       const userDataString = localStorage.getItem("user_data");
-      console.log({ _id: userDataString})
-      
+
       return this.getAccessNumbers(userDataString)
         .pipe(
           map((res: any) => {
-            console.log(this.mapAccessNumbersToRoles(res.data));
+            // console.log(this.mapAccessNumbersToRoles(res.data));
             return this.mapAccessNumbersToRoles(res.data);
           }),
           catchError((err: any) => {
@@ -75,6 +87,21 @@ export class AuthService {
         }
       });
     };
+
+    getUserPremisson(expectedRoles: UserRole[]) {
+      if (!expectedRoles || expectedRoles.length === 0) {
+        return true; // No role restrictions, allow access
+      }
+    
+      // Retrieve user roles from localStorage
+      const userRolesString = localStorage.getItem("userRoles");
+      const userRoles: string[] = userRolesString ? JSON.parse(userRolesString) : [];
+    
+      // Check if the user has any of the expected roles
+      const hasMatchingRole = expectedRoles.some(role => userRoles.includes(role));
+    
+      return hasMatchingRole;
+    }
 
 }
 

@@ -40,6 +40,18 @@ export class LoginComponent implements OnInit{
           console.log(res);
           // localStorage.setItem("user_data", JSON.stringify(res.data));
           localStorage.setItem("user_data", res.data._id);
+          localStorage.setItem("username", res.data.username);
+          localStorage.setItem("profile_picture", res.data.profileImage);
+          localStorage.setItem("firstName", res.data.firstName);
+          localStorage.setItem("lastName", res.data.lastName);
+          this.authService.getUserRoles().subscribe(
+            roles => {
+              localStorage.setItem("userRoles", JSON.stringify(roles)); // Store user roles in localStorage
+            },
+            error => {
+              console.log(error);
+            }
+          );
           this.loginForm.reset();
           this.router.navigate(['test']);
         },

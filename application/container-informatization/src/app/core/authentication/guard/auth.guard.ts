@@ -27,7 +27,7 @@ export class AuthGuard implements CanActivate {
 
     return this.authService.getUserRoles().pipe(
       map(userRoles => {
-        console.log(userRoles);
+        //console.log(userRoles);
 
         // Check if the user has any of the expected roles
         const hasMatchingRole = expectedRoles.some((role: any) => userRoles.includes(role));
