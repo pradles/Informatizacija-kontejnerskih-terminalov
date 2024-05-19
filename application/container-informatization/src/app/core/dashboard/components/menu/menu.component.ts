@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Route, RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService, UserRole } from '../../../authentication/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { TerminalService } from '../../../../shared/services/api/terminal.service';
@@ -13,32 +13,41 @@ import { DashboardService } from '../../services/dashboard.service';
   styleUrl: './menu.component.css'
 })
 export class MenuComponent implements OnInit{
-  toggleTerminalDropdown: boolean = false;
+  terminalDropdown: boolean = false;
   localStorage = localStorage;
   userId = localStorage.getItem("user_data");
+  router = inject(Router);
   terminalService = inject(TerminalService);
   authService = inject(AuthService);
   dashboardService = inject(DashboardService);
   UserRole = UserRole;
 
   hasPermission: boolean = false;
-  userTerminals!: any[];
 
   ngOnInit(): void {
     this.hasPermission = this.checkPermission([UserRole.Admin, UserRole.Moderator]);
 
-    this.terminalService.getUserTerminals()
-    .subscribe({
-      next:(res)=>{
-        console.log(res);
-        this.userTerminals = res.data;
-        if(!this.getSelectedTerminal())
-          this.dashboardService.setSelectedTerminal(this.userTerminals[0]);
-      },
-      error:(err)=>{
-        console.log(err);
-      }
-    });
+    if(!this.getSelectedTerminal()){
+      this.terminalService.getUserTerminals()
+      .subscribe({
+        next:(res)=>{
+          console.log(res);
+          this.dashboardService.setUserTerminals(res.data);
+          this.dashboardService.setSelectedTerminal(this.dashboardService.getUserTerminals()[0]);
+          this.router.navigate(['dashboard/' + this.getSelectedTerminal().name + '/details']);
+          console.log("routed")
+        },
+        error:(err)=>{
+          console.log(err);
+        }
+      });
+    }
+
+  }
+
+  toggleTerminalDropdown() {
+    this.terminalDropdown = !this.terminalDropdown;
+    console.log("open:", this.terminalDropdown)
   }
 
   logOut() {
@@ -60,6 +69,10 @@ export class MenuComponent implements OnInit{
 
   getSelectedTerminal() {
     return this.dashboardService.getSeletedTerminal();
+  }
+
+  getUserTerminals() {
+    return this.dashboardService.getUserTerminals();
   }
 
   

@@ -14,7 +14,7 @@ router.put('/update', verifyAdmin, updateTerminal);
 router.get('/', verifyAdmin, getAllTerminals);
 
 // Get Terminal by Id
-router.get('/:id', verifyAdmin, getTerminalById);
+router.get('/:id', verifyRole, getTerminalById);
 
 // Update Terminal storage - user that has a role in this terminal
 router.put('/update-storage', verifyRole, updateStorage)
