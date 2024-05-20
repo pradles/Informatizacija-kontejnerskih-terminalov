@@ -11,6 +11,7 @@ export const createTerminal = async (req, res, next)=>{
         const newTerminal = new Terminal({
             name: req.body.name,
             location: req.body.location,
+            array3D: req.body.array3D
         });
         await newTerminal.save();
         return next(CreateSuccess(200, "Terminal created successfully."))
@@ -22,7 +23,7 @@ export const createTerminal = async (req, res, next)=>{
 export const updateTerminal = async (req, res, next) => {
     try {
         const updatedTerminal = await Terminal.findByIdAndUpdate(
-            req.params.id,
+            req.body._id,
             { $set: req.body },
             { new: true }
         );

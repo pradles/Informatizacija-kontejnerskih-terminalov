@@ -14,6 +14,7 @@ import { DashboardService } from '../../services/dashboard.service';
 })
 export class MenuComponent implements OnInit{
   terminalDropdown: boolean = false;
+  adminDropdown: boolean = false;
   localStorage = localStorage;
   userId = localStorage.getItem("user_data");
   router = inject(Router);
@@ -23,9 +24,11 @@ export class MenuComponent implements OnInit{
   UserRole = UserRole;
 
   hasPermission: boolean = false;
+  hasPermissionAdmin: boolean = false;
 
   ngOnInit(): void {
     this.hasPermission = this.checkPermission([UserRole.Admin, UserRole.Moderator]);
+    this.hasPermissionAdmin = this.checkPermission([UserRole.Admin]);
 
     if(!this.getSelectedTerminal()){
       this.terminalService.getUserTerminals()
@@ -34,8 +37,7 @@ export class MenuComponent implements OnInit{
           console.log(res);
           this.dashboardService.setUserTerminals(res.data);
           this.dashboardService.setSelectedTerminal(this.dashboardService.getUserTerminals()[0]);
-          this.router.navigate(['dashboard/' + this.getSelectedTerminal().name + '/details']);
-          console.log("routed")
+          // this.router.navigate(['dashboard/' + this.getSelectedTerminal().name + '/details']);
         },
         error:(err)=>{
           console.log(err);
@@ -47,7 +49,9 @@ export class MenuComponent implements OnInit{
 
   toggleTerminalDropdown() {
     this.terminalDropdown = !this.terminalDropdown;
-    console.log("open:", this.terminalDropdown)
+  }
+  toggleAdminDropdown() {
+    this.adminDropdown = !this.adminDropdown;
   }
 
   logOut() {

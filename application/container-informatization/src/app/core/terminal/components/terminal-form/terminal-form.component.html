@@ -1,0 +1,26 @@
+<div class="w-11/12">
+    <div class="bg-white shadow-sm rounded px-8 pt-6 pb-5 border border-gray-100 hover:shadow-md transition ease-in-out">
+        <h2 class="text-2xl mb-10">{{ isEditMode ? "Terminal information:" : "Create new terminal" }}</h2>
+
+        <form [formGroup]="terminalForm" (ngSubmit)="onSubmit()">
+            <div class="h-16 max-w-52">
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="name" type="text" formControlName="name" placeholder="Terminal name">
+            <span *ngIf="terminalForm.hasError('required', 'name') && (terminalForm.controls['name'].dirty || terminalFormSubmitted)" class="text-red-500">Name is required</span>
+            </div>
+            <div class="h-16 mt-1 max-w-52">
+                <input class="shadow appearance-none border rounded max-w-xs py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="location" type="text" formControlName="location" placeholder="Terminal location">
+                <span *ngIf="terminalForm.hasError('required', 'location') && (terminalForm.controls['location'].dirty || terminalFormSubmitted)" class="text-red-500">Location is required</span>
+            </div>
+            <button class="hidden" type="submit"></button>
+        </form>
+
+        <div>
+            <app-terminal-array [isEditMode]="isEditMode"></app-terminal-array>
+        </div>
+
+        <div class="flex items-center justify-between mt-20">
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
+        </div>
+    </div>
+</div>
+  

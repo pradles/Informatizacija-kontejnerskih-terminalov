@@ -21,20 +21,45 @@
 
     <hr class="my-6">
 
+    <div class="navigation">
+        <button (click)="decrementZ()" [disabled]="currentZ === 0" class="nav-button">&lt;</button>
+        <span>{{ currentZ + 1 }} / {{ maxZ }}</span>
+        <button (click)="incrementZ()" [disabled]="currentZ === maxZ - 1" class="nav-button">&gt;</button>
+    </div>
+
+    <!-- dropdown.component.html -->
+  <div class="relative inline-block text-left ml-32" (click)="toggleDropdown()">
+    <button type="button" class="inline-flex justify-center w-full px-4 py-2 bg-gray-100 text-sm font-medium hover:bg-gray-200 focus:outline-none">
+      {{ selectedAccessibillity }}
+      <svg class="w-5 h-5 ml-2 -mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+  
+    <div *ngIf="dropdownOpen" class="absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+      <div class="py-1">
+        <div (click)="selectedAccessibillity = 2" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"><div class="bg-green-500 size-3"></div>Open</div>
+        <div (click)="selectedAccessibillity = 1" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"><div class="bg-yellow-500 size-3"></div>Special</div>
+        <div (click)="selectedAccessibillity = 0" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"><div class="bg-white size-3 border"></div>Closed</div>
+      </div>
+    </div>
+  </div>
+  
+
     <div *ngIf="array3D" class="w-auto inline-block">
         <table>
             <tbody>
                 <tr *ngFor="let row of array3D; let x = index">
                     <ng-container *ngFor="let col of row; let y = index">
                         <td class="cell size-7 border border-white"
-                            (mousedown)="clickStarted(); changeColor(x,y,0)"
+                            (mousedown)="clickStarted(); changeColor(x,y,currentZ)"
                             (mouseup)="clickEnded()"
-                            (mouseover)="changeColorWithCheck(x,y,0)"
+                            (mouseover)="changeColorWithCheck(x,y,currentZ)"
                             [ngClass]="{
-                                'bg-cyan-300': array3D[x][y][0][2] === 0,
-                                'bg-yellow-400': array3D[x][y][0][2] === 1,
-                                'bg-red-500': array3D[x][y][0][2] === 2
-                            }"></td>
+                                'bg-gray-300': array3D[x][y][currentZ] && array3D[x][y][currentZ].accessibility === 0,
+                                'bg-yellow-400': array3D[x][y][currentZ] && array3D[x][y][currentZ].accessibility === 1,
+                                'bg-green-500': array3D[x][y][currentZ] && array3D[x][y][currentZ].accessibility === 2
+                              }"></td>
                     </ng-container>
                 </tr>
             </tbody>

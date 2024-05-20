@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { PageAuthComponent } from './core/authentication/pages/page-auth/page-auth.component';
 import { TestComponent } from './test/test.component';
 import { PageDashboardComponent } from './core/dashboard/pages/page-dashboard/page-dashboard.component';
+import { PageTerminalComponent } from './core/terminal/pages/page-terminal/page-terminal.component';
 import { UserRole } from './core/authentication/services/auth.service';
 import { AuthGuard } from './core/authentication/guard/auth.guard';
 
@@ -17,4 +18,7 @@ export const routes: Routes = [
     { path: 'dashboard/:terminalName/users', component: PageDashboardComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator] }},
     { path: 'dashboard/:terminalName/details', component: PageDashboardComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'dashboard/:terminalName/roles', component: PageDashboardComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator] }},
+    { path: 'terminal', component: PageTerminalComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
+    { path: 'terminal/:terminalId', component: PageTerminalComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
+    { path: 'all-terminals', component: PageTerminalComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
 ];

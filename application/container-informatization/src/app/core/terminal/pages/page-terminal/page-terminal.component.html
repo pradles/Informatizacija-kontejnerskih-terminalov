@@ -1,0 +1,9 @@
+<div class="min-h-screen bg-[#fffbfb] p-5">
+    <app-menu></app-menu>
+    <div class="ml-[16rem]">
+        <app-terminal-form *ngIf="isCurrentRoute('/terminal')"></app-terminal-form>
+        <app-terminals *ngIf="isCurrentRoute('/all-terminals')"></app-terminals>
+    </div>
+
+    <app-error-modal [isOpen]="isErrorModalOpen" [title]="errorModalTitle" [text]="errorModalText" (closeModalEvent)="isErrorModalOpen = false"></app-error-modal>
+</div>
