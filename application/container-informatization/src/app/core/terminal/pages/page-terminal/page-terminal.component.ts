@@ -22,7 +22,6 @@ export class PageTerminalComponent {
     return this.router.url.startsWith(segment);
   }
 
-
   isErrorModalOpen: boolean = false;
   errorModalTitle!: string;
   errorModalText!: string;

@@ -1,0 +1,42 @@
+<div class="p-4">
+    <input 
+      type="text" 
+      placeholder="Search..." 
+      class="border rounded p-2 mb-4 max-w-2xl focus:outline-none focus:shadow-outline" 
+      [(ngModel)]="searchQuery" 
+      (input)="onSearch()"
+    />
+  
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr>
+          <th *ngFor="let column of columns" class="text-left px-4 py-2 border-b cursor-pointer hover:bg-gray-100" (click)="sort(column)">
+            {{ column | titlecase }} <span *ngIf="sortColumn === column">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th class="font-semibold text-left px-4 py-2 border-b cursor-pointer hover:bg-gray-100" (click)="clearSort()">
+            Clear sort
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of filteredData" class="hover:bg-gray-100">
+          <td *ngFor="let column of columns" class="border-b px-4 py-2">
+            <ng-container *ngIf="isDate(data[column]); else notADate">
+                {{ data[column] | date: 'yyyy-MM-dd HH:mm' }}
+              </ng-container>
+              <ng-template #notADate>{{ data[column] }}</ng-template>
+          </td>
+          <td class="border-b px-4 py-2 font-medium cursor-pointer">
+            <span routerLink="/{{ dataType }}/{{ data['_id'] }}" class="text-blue-600 hover:underline">Details</span>
+             | 
+            <span class="text-red-600 hover:underline" (click)="delete()">Delete</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="flex items-center justify-between mt-10">
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" routerLink="/{{ dataType }}">Add {{ dataType }}</button>
+    </div>
+  </div>
+  

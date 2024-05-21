@@ -59,6 +59,19 @@ export const getTerminalById = async (req, res, next) => {
     }
 };
 
+export const deleteTerminal = async (req, res, next) => {
+    try {
+        const deletedTerminal = await Terminal.findByIdAndDelete(req.params.id);
+        if (deletedTerminal) {
+            return next(CreateSuccess(200, "Terminal deleted successfully."));
+        } else {
+            return next(CreateError(404, "Terminal not found."));
+        }
+    } catch (error) {
+        return next(CreateError(500, "Error deleting terminal."));
+    }
+};
+
 export const updateStorage = async (req, res, next)=>{
 
 }

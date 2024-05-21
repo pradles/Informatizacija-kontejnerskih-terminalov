@@ -4,12 +4,15 @@ import { FormsModule, FormGroup, Validators, FormBuilder, ReactiveFormsModule } 
 import { inject } from '@angular/core';
 
 import { PageTerminalComponent } from '../../pages/page-terminal/page-terminal.component';
+import { TestComponent } from '../../../../test/test.component';
+
+import { ViewChild } from '@angular/core';
 
 
 @Component({
   selector: 'app-terminal-array',
   standalone: true,
-  imports: [ CommonModule, FormsModule, ReactiveFormsModule ],
+  imports: [ CommonModule, FormsModule, ReactiveFormsModule, TestComponent ],
   templateUrl: './terminal-array.component.html',
   styleUrl: './terminal-array.component.css'
 })
@@ -17,9 +20,11 @@ export class TerminalArrayComponent {
   fb = inject(FormBuilder);
   pageTermianl = inject(PageTerminalComponent);
   @Input() isEditMode!: boolean;
+  @ViewChild(TestComponent) testComponent!: TestComponent;
 
   arrayForm!: FormGroup;
 
+  show3d: boolean = true;
   currentZ: number = 0;
   maxZ!: number;
   selectedAccessibillity: number = 2;
@@ -95,14 +100,20 @@ export class TerminalArrayComponent {
     this.dropdownOpen = !this.dropdownOpen;
   }
 
+  toggle3d() {
+    this.show3d = !this.show3d;
+  }
+
   setArray(array: any) {
     console.log(array)
     this.maxZ = array[0][0].length;
     this.array3D = array;
+    this.testComponent.setArray(array);
   }
 
   getArray() {
     return this.array3D;
   }
-  
+
+
 }

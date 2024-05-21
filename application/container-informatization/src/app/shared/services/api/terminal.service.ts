@@ -21,6 +21,10 @@ export class TerminalService {
     return this.http.get<any>(`${apiUrls.TerminalServiceApi}${terminalId}`, {withCredentials:true} );
   }
 
+  deleteTerminal(terminalId: string) {
+    return this.http.delete<any>(`${apiUrls.TerminalServiceApi}delete/${terminalId}`, {withCredentials:true} );
+  }
+
   createTerminal(terminalObj: any) {
     return this.http.post<any>(`${apiUrls.TerminalServiceApi}create`, terminalObj, {withCredentials:true} );
   }

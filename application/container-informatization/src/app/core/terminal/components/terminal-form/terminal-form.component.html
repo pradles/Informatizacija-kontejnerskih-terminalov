@@ -17,9 +17,13 @@
         <div>
             <app-terminal-array [isEditMode]="isEditMode"></app-terminal-array>
         </div>
-
-        <div class="flex items-center justify-between mt-20">
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
+        <div class="flex flex-row space-x-5">
+            <div class="flex items-center justify-between mt-10">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
+            </div>
+            <div *ngIf="isEditMode" class="flex items-center justify-between mt-10">
+                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="delete()">Delete</button>
+            </div>
         </div>
     </div>
 </div>

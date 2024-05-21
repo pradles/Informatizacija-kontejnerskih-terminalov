@@ -37,7 +37,8 @@ export class MenuComponent implements OnInit{
           console.log(res);
           this.dashboardService.setUserTerminals(res.data);
           this.dashboardService.setSelectedTerminal(this.dashboardService.getUserTerminals()[0]);
-          // this.router.navigate(['dashboard/' + this.getSelectedTerminal().name + '/details']);
+          if(this.router.url == "/dashboard")
+            this.router.navigate(['dashboard/' + this.getSelectedTerminal().name + '/details']);
         },
         error:(err)=>{
           console.log(err);

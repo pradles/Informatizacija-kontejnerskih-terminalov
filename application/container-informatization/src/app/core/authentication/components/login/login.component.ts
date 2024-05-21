@@ -53,7 +53,7 @@ export class LoginComponent implements OnInit{
             }
           );
           this.loginForm.reset();
-          this.router.navigate(['test']);
+          this.router.navigate(['dashboard']);
         },
         error:(err)=>{
           this.pageAuth.openErrorModal(err.error.message);

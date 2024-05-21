@@ -34,7 +34,7 @@
             [class.text-white]="currentZ == z"
             [class.bg-blue-600]="currentZ == z"
             [class.border-blue-600]="currentZ == z"
-            [class.hover:bg-blue-600]="currentZ == z"> {{ z+1 }} </div>
+            [ngClass]="{ 'hover:bg-gray-200': currentZ != z }" > {{ z+1 }} </div>
             </li>
         
             <li>
@@ -63,9 +63,17 @@
               </div>
         </div>
 
+        <div class="inline-flex items-center justify-center size-8 border border-gray-300 rounded cursor-pointer "
+            (click)="toggle3d()"
+            [class.text-white]="show3d"
+            [class.bg-blue-600]="show3d"
+            [class.border-blue-600]="show3d"
+            [ngClass]="{ 'hover:bg-gray-200': !show3d }">3D
+        </div>
+
     </div>
 
-    <div class="w-auto inline-block">
+    <div *ngIf="!show3d" class="w-auto inline-block">
         <table>
             <tbody>
                 <tr *ngFor="let row of array3D; let x = index">
@@ -84,5 +92,7 @@
             </tbody>
         </table>
     </div>
+
+    <app-test [class.hidden]="!show3d" [currentLayer]="currentZ"></app-test>
 
 </div>

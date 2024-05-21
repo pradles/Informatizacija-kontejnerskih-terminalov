@@ -97,5 +97,17 @@ export class TerminalFormComponent implements OnInit{
     }
   }
 
+  delete() {
+    if(this.terminalId)
+    this.terminalService.deleteTerminal(this.terminalId).subscribe({
+      next:(res)=>{
+        console.log(res)
+        this.router.navigate(['/all-terminals']); // Redirect after update
+      },
+      error:(err)=>{
+        console.log(err)
+      }
+    });
+  }
 
 }
