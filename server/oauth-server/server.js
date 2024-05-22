@@ -6,6 +6,7 @@ import roleRoute from './routes/role.js'
 import authRoute from './routes/auth.js'
 import userRoute from './routes/user.js'
 import terminalRoute from './routes/terminal.js'
+import containerRoute from './routes/container.js'
 import { CreateError } from './utils/error.js';
 import cookieParser from 'cookie-parser';
 
@@ -22,6 +23,7 @@ app.use("/api/role", roleRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/terminal", terminalRoute);
+app.use("/api/container", containerRoute);
 
 
 // Response handler middleware

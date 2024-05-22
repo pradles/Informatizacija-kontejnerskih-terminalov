@@ -78,7 +78,7 @@
             <tbody>
                 <tr *ngFor="let row of array3D; let x = index">
                     <ng-container *ngFor="let col of row; let y = index">
-                        <td class="cell size-7 border border-white"
+                        <td class="cell h-7 w-14 border border-white"
                             (mousedown)="clickStarted(); changeColor(x,y,currentZ)"
                             (mouseup)="clickEnded()"
                             (mouseover)="changeColorWithCheck(x,y,currentZ)"
@@ -93,6 +93,6 @@
         </table>
     </div>
 
-    <app-test [class.hidden]="!show3d" [currentLayer]="currentZ"></app-test>
+    <app-terminal-3-darray [class.hidden]="!show3d" [currentLayer]="currentZ" [show3d]="show3d"></app-terminal-3-darray>
 
 </div>

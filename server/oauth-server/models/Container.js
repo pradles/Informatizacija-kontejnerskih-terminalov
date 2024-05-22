@@ -1,0 +1,35 @@
+import mongoose from "mongoose";
+
+const ContainerSchema = mongoose.Schema(
+    {
+        containerNumber: {
+            type: Number,
+            required: true,
+            unique: true,
+            index: true
+        },
+        size: {
+            type: Number,
+            enum: [0, 1, 2],
+            required: true
+        },
+        contents: {
+            type: String,
+            required: true,
+        },
+        storageType: {
+            type: Number,
+            enum: [1, 2],
+            required: true,
+        },
+        weight: {
+            type: Number,
+            required: true,
+        }
+    },
+    {
+        timestamps: true
+    }
+);
+
+export default mongoose.model("Container", ContainerSchema);
