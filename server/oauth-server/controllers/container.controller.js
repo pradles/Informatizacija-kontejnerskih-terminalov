@@ -37,8 +37,8 @@ export const updateContainer = async (req, res, next) => {
 
 export const getAllContainers = async (req, res, next)=>{
     try {
-        const users = await Container.find();
-        return next(CreateSuccess(200, "Returned containers", users))
+        const containers = await Container.find();
+        return next(CreateSuccess(200, "Returned containers", containers))
     } catch (error) {
         return next(CreateError(500, "Error getting containers."));
     }
@@ -46,9 +46,9 @@ export const getAllContainers = async (req, res, next)=>{
 
 export const getContainerById = async (req, res, next)=>{
     try {
-        const user = await Container.findById({_id: req.params.id});
-        if(user) 
-            return next(CreateSuccess(200, "Returned container by id", user));
+        const container = await Container.findById({_id: req.params.id});
+        if(container) 
+            return next(CreateSuccess(200, "Returned container by id", container));
         return next(CreateError(404, "Container not found."));
     } catch (error) {
         return next(CreateError(500, "Error getting container by id."));

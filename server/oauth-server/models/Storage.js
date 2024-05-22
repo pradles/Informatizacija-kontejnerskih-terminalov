@@ -22,7 +22,7 @@ const StorageSchema = mongoose.Schema(
     },
     currentlyStoredAt: {
       type: String,
-      required: true,
+      required: false,
     },
     dateScheduledForExport: {
       type: Date,
