@@ -17,6 +17,6 @@ export class StorageService {
   }
 
   getTerminalStorageRecords(terminalId: string) {
-    return this.http.post<any>(`${apiUrls.StorageServiceApi}terminal/${terminalId}`, {withCredentials:true} );
+    return this.http.get<any>(`${apiUrls.StorageServiceApi}terminal/664c9fe3f5119576d738002c`, {withCredentials:true} );
   }
 }

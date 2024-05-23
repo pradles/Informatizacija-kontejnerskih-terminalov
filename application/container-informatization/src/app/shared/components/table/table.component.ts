@@ -14,6 +14,7 @@ import { RouterModule } from '@angular/router';
 export class TableComponent implements OnInit{
   data: any[] = [];
   dataType: string = '';
+  selectedRows: any[] = [];
 
   setTableData(providedData: any, providedDataType: string) {
     this.data = providedData;
@@ -37,9 +38,13 @@ export class TableComponent implements OnInit{
 
   onSearch() {
     this.filteredData = this.data.filter((col: any) =>
-      this.columns.some(column => 
-        col[column].toString().toLowerCase().includes(this.searchQuery.toLowerCase())
-      )
+      this.columns.some(column => {
+        const value = col[column];
+        if (value !== undefined && value !== null) {
+          return value.toString().toLowerCase().includes(this.searchQuery.toLowerCase());
+        }
+        return false;
+      })
     );
   }
 
@@ -84,5 +89,30 @@ export class TableComponent implements OnInit{
   delete() {
     // call the appropriate delete function based on this.dataType
   }
+
+  transformColumnName(column: string | null): string {
+    if (!column) return '';
+    return column.match(/[A-Z][a-z]+|[0-9]+/g)?.join(' ') || ''; 
+  }
+
+  columnFilterOpen: string = '';
+
+  toggleFilter(column: string): void {
+    if(this.columnFilterOpen == column)
+      this.columnFilterOpen = '';
+    else
+      this.columnFilterOpen = column;
+  }
+
+  toggleRowSelection(data: any) {
+    const index = this.selectedRows.findIndex(row => row === data);
+    if (index === -1) {
+      this.selectedRows.push(data); // Add row data if not already selected
+    } else {
+      this.selectedRows.splice(index, 1); // Remove row data if already selected
+    }
+    console.log('Selected Rows:', this.selectedRows); // Log the updated array
+  }
+  
 }
 

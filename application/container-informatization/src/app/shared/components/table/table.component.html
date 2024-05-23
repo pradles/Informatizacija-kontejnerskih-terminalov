@@ -1,39 +1,58 @@
 <div class="p-4">
     <input 
       type="text" 
-      placeholder="Search..." 
+      placeholder="Search {{ dataType }}..." 
       class="border rounded p-2 mb-4 max-w-2xl focus:outline-none focus:shadow-outline" 
       [(ngModel)]="searchQuery" 
       (input)="onSearch()"
     />
   
-    <table class="min-w-full bg-white">
-      <thead>
-        <tr>
-          <th *ngFor="let column of columns" class="text-left px-4 py-2 border-b cursor-pointer hover:bg-gray-100" (click)="sort(column)">
-            {{ column | titlecase }} <span *ngIf="sortColumn === column">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
-          </th>
-          <th class="font-semibold text-left px-4 py-2 border-b cursor-pointer hover:bg-gray-100" (click)="clearSort()">
-            Clear sort
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let data of filteredData" class="hover:bg-gray-100">
-          <td *ngFor="let column of columns" class="border-b px-4 py-2">
-            <ng-container *ngIf="isDate(data[column]); else notADate">
-                {{ data[column] | date: 'yyyy-MM-dd HH:mm' }}
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th *ngIf="dataType == 'storage'">
+            </th>
+            <th *ngFor="let column of columns" class="text-left pl-4 pr-6 py-2 border-b cursor-pointer relative hover:bg-gray-100 group" (click)="sort(column)">
+              {{ dataType == "storage" ? transformColumnName(column) : column | titlecase }}
+              <span *ngIf="sortColumn === column" class="ml-1 absolute">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+              <span class="absolute right-0.5 invisible group-hover:visible mt-1" (click)="toggleFilter(column); $event.stopPropagation()">
+                <svg class="w-5 h-5 text-gray-500  duration-75 hover:text-gray-900 transition ease-in-out delay-75" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0-6a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+               </svg>
+               <div class="relative visible">
+                <div *ngIf="columnFilterOpen === column" class="absolute top-0 right-0 bg-white border rounded p-4 shadow w-20 h-10">
+                  <!-- Content of the small window -->
+                </div>
+               </div>
+              </span>
+            </th>
+            <th class="text-left px-4 py-2 border-b cursor-pointer hover:bg-gray-100" (click)="clearSort()">
+              Clear sort
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of filteredData" class="hover:bg-gray-100">
+            <td *ngIf="dataType == 'storage'" class="border-b px-4 py-2" >
+              <input type="checkbox" (change)="toggleRowSelection(data)" >
+            </td>
+            <td *ngFor="let column of columns" class="border-b px-4 py-2 min-w-[8rem]">
+              <ng-container *ngIf="isDate(data[column]); else notADate">
+                {{ data[column] | date: 'dd-MM-yyyy HH:mm' }}
               </ng-container>
               <ng-template #notADate>{{ data[column] }}</ng-template>
-          </td>
-          <td class="border-b px-4 py-2 font-medium cursor-pointer">
-            <span routerLink="/{{ dataType }}/{{ data['_id'] }}" class="text-blue-600 hover:underline">Details</span>
-             | 
-            <span class="text-red-600 hover:underline" (click)="delete()">Delete</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+            <td class="border-b px-4 py-2 font-medium cursor-pointer sticky right-0 bg-white">
+              <span routerLink="/{{ dataType }}/{{ data['_id'] }}" class="text-blue-600 hover:underline">Details</span> 
+              | 
+              <span class="text-red-600 hover:underline" (click)="delete()">{{ dataType == "storage" ? 'Export' : 'Delete'}}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
 
     <div class="flex items-center justify-between mt-10">
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" routerLink="/{{ dataType }}">Add {{ dataType }}</button>

@@ -1,30 +1,59 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild } from '@angular/core';
 
 import { StorageService } from '../../../../shared/services/api/storage.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { TableComponent } from '../../../../shared/components/table/table.component';
 
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [],
+  imports: [ TableComponent ],
   templateUrl: './details.component.html',
   styleUrl: './details.component.css'
 })
 export class DetailsComponent implements OnInit{
+  @ViewChild(TableComponent) tableComponent!: TableComponent;
 
   storageService = inject(StorageService);
   dashboardService = inject(DashboardService);
 
   ngOnInit(): void {
-    this.storageService.getTerminalStorageRecords(this.dashboardService.getSeletedTerminal().id)
-      .subscribe({
-        next:(res)=>{
-          console.log(res);
-        },
-        error:(err)=>{
-          console.log(err);
+    this.dashboardService.getSelectedTerminal().subscribe({
+      next: (selectedTerminal) => {
+        if (selectedTerminal && selectedTerminal.id) {
+          this.storageService.getTerminalStorageRecords(selectedTerminal.id).subscribe({
+            next: (res) => {
+              console.log(res);
+              this.tableComponent.setTableData(this.prepareTableData(res.data), "storage");
+            },
+            error: (err) => {
+              console.log(err);
+            }
+          });
         }
-      });
+      },
+      error: (err) => {
+        console.log(err);
+      }
+    });
+  }
+
+  prepareTableData(arr: any) {
+    return arr.map((storage: any) => {
+      const container = storage.containerId[0];
+      const terminal = storage.terminalId[0];
+  
+      return {
+        ContainerNumber: container.containerNumber,
+        containerSize: container.size == 0 ? '3m' : container.size == 1 ? '6m' : '12m',
+        containerLocation: container.currentlyStoredAt,
+        containerContents: container.contents,
+        StorageType: container.storageType == 1 ? 'Special' : 'Normal',
+        dateImported: storage.dateImported,
+        dateExported: storage.dateExported,
+        dateScheduledExport: storage.dateScheduledForExport,
+      };
+    });
   }
 
 }

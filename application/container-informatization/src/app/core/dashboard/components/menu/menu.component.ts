@@ -73,7 +73,7 @@ export class MenuComponent implements OnInit{
   }
 
   getSelectedTerminal() {
-    return this.dashboardService.getSeletedTerminal();
+    return this.dashboardService.getSelectedTerminalMenu();
   }
 
   getUserTerminals() {

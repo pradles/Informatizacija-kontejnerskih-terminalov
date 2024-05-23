@@ -56,6 +56,7 @@ export const getTerminalStorageRecords = async (req, res, next) => {
   
       // Ensure the terminal exists
       const terminal = await Terminal.findById(terminalId);
+
       if (!terminal) {
         return next(CreateError(404, "Terminal not found"));
       }
