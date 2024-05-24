@@ -1,8 +1,8 @@
 <div class="min-h-screen bg-[#fffbfb] p-5">
     <app-menu></app-menu>
     <div class="sm:ml-[16rem]">
-        <app-terminal-form *ngIf="isCurrentRoute('/terminal')"></app-terminal-form>
-        <app-terminals *ngIf="isCurrentRoute('/all-terminals')"></app-terminals>
+        <app-storage-form *ngIf="isCurrentRoute('/storage')"></app-storage-form>
+        <app-storages *ngIf="isCurrentRoute('/all-storages')"></app-storages>
     </div>
 
     <app-error-modal [isOpen]="isErrorModalOpen" [title]="errorModalTitle" [text]="errorModalText" (closeModalEvent)="isErrorModalOpen = false"></app-error-modal>

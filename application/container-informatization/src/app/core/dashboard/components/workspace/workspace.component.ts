@@ -5,11 +5,11 @@ import { DashboardService } from '../../services/dashboard.service';
 import { TableComponent } from '../../../../shared/components/table/table.component';
 
 @Component({
-  selector: 'app-details',
+  selector: 'app-workspace',
   standalone: true,
   imports: [ TableComponent ],
-  templateUrl: './details.component.html',
-  styleUrl: './details.component.css'
+  templateUrl: './workspace.component.html',
+  styleUrl: './workspace.component.css'
 })
 export class DetailsComponent implements OnInit{
   @ViewChild(TableComponent) tableComponent!: TableComponent;
@@ -52,6 +52,7 @@ export class DetailsComponent implements OnInit{
         dateImported: storage.dateImported,
         dateExported: storage.dateExported,
         dateScheduledExport: storage.dateScheduledForExport,
+        _id: storage._id
       };
     });
   }

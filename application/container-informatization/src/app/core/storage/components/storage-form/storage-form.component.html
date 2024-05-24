@@ -1,0 +1,91 @@
+<div class="w-full">
+    <div class="bg-white shadow-sm rounded px-8 pt-6 pb-5 border border-gray-100 hover:shadow-md transition ease-in-out flex flex-row space-x-5 h-[calc(100vh-4rem)]">
+        <div class="max-w-min h-full flex-grow">
+            <h2 class="text-2xl mb-8">{{ isEditMode ? "Storage information:" : "Create new storage" }}</h2>
+            
+            <form [formGroup]="storageForm" (ngSubmit)="onSubmit()">
+
+                <div class="h-16 max-w-52">
+                    <span class="text-gray-600">Container: </span>
+                    <input 
+                        value="neki"
+                        disabled
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="h-16 max-w-52">
+                    <span class="text-gray-600">Terminal: </span>
+                    <input
+                        value=""
+                        disabled
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <hr class="my-5">
+        
+                <!-- Date Imported Input -->
+                <div class="h-20 max-w-52">
+                <span class="text-gray-600">Date imported: </span>
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="dateImported" 
+                    type="datetime-local" 
+                    formControlName="dateImported" 
+                    placeholder="Date Imported">
+                <span
+                    *ngIf="storageForm.hasError('required', 'dateImported') && (storageForm.controls['dateImported'].dirty || storageFormSubmitted)" 
+                    class="text-red-500">
+                    Date Imported is required
+                </span>
+                </div>
+            
+                <!-- Date Exported Input -->
+                <div class="h-20 mt-1 max-w-52">
+                <span class="text-gray-600">Date exported: </span>
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="dateExported" 
+                    type="datetime-local" 
+                    formControlName="dateExported" 
+                    placeholder="Date Exported">
+                </div>
+            
+                <!-- Date Scheduled for Export Input -->
+                <div class="h-20 mt-1 max-w-52">
+                <span class="text-gray-600">Date Scheduled for Export: </span>
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="dateScheduledForExport" 
+                    type="datetime-local" 
+                    formControlName="dateScheduledForExport" 
+                    placeholder="Date Scheduled for Export">
+                </div>
+
+                <!-- Currently Stored At Input -->
+                <div class="h-16 mt-1 max-w-52">
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        name="currentlyStoredAt" 
+                        type="text" 
+                        formControlName="currentlyStoredAt" 
+                        placeholder="Currently Stored At">
+                </div>
+            
+                <!-- Hidden submit button -->
+                <button class="hidden" type="submit"></button>
+            </form>
+            
+            
+
+            <div class="flex flex-row space-x-5">
+                <div class="flex items-center justify-between mt-10">
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
+                </div>
+                <div *ngIf="isEditMode" class="flex items-center justify-between mt-10">
+                    <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="delete()">Delete</button>
+                </div>
+            </div>
+        </div>
+        <div class="border w-full h-full">
+
+        </div>
+    </div>
+</div>

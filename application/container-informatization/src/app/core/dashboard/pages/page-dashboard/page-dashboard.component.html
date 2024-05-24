@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-[#fffbfb] p-5">
     <app-menu></app-menu>
-    <div class="ml-[17rem]">
-        <app-details *ngIf="isCurrentRoute('details')"></app-details>
+    <div class="sm:ml-[16rem]">
+        <app-workspace *ngIf="isCurrentRoute('workspace')"></app-workspace>
         <app-users *ngIf="isCurrentRoute('users')"></app-users>
         <app-roles *ngIf="isCurrentRoute('roles')"></app-roles>
     </div>

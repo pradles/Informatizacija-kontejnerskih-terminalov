@@ -4,7 +4,7 @@ import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MenuComponent } from '../../components/menu/menu.component';
-import { DetailsComponent } from '../../components/details/details.component';
+import { DetailsComponent } from '../../components/workspace/workspace.component';
 import { RolesComponent } from '../../components/roles/roles.component';
 import { UsersComponent } from '../../components/users/users.component';
 

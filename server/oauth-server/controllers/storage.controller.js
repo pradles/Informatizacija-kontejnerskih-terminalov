@@ -48,6 +48,15 @@ export const getAllStorageRecords = async (req, res, next)=>{
     }
 }
 
+export const getStorageRecordsById = async (req, res, next)=>{
+    try {
+        const storageRecord = await Storage.findById(req.params.id).populate('containerId').populate('terminalId');
+        return next(CreateSuccess(200, "Returned storage record by id", storageRecord));
+    } catch (error) {
+        return next(CreateError(500, "Error fetching storage record by id."));
+    }
+}
+
 
 
 export const getTerminalStorageRecords = async (req, res, next) => {

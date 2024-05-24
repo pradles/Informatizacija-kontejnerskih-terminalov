@@ -91,8 +91,10 @@ export class TableComponent implements OnInit{
   }
 
   transformColumnName(column: string | null): string {
+    // if(column == '_id')
+    //   return '_id';
     if (!column) return '';
-    return column.match(/[A-Z][a-z]+|[0-9]+/g)?.join(' ') || ''; 
+      return column.match(/[A-Z][a-z]+|[0-9]+|_[a-z]+/g)?.join(' ') || ''; 
   }
 
   columnFilterOpen: string = '';
