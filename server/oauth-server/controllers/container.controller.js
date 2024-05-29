@@ -11,8 +11,8 @@ export const addContainer = async (req, res, next)=>{
             storageType: req.body.storageType,
             weight: req.body.weight
         });
-        await newContainer.save();
-        return next(CreateSuccess(200, "Container added successfully."))
+        const savedContainer = await newContainer.save();
+        return next(CreateSuccess(200, `Container added successfully. Container ID:${savedContainer._id}`));
     } catch (error) {
         return next(CreateError(500, "Error adding container."))
     }

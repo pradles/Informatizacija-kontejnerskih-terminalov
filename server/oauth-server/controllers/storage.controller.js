@@ -76,4 +76,55 @@ export const getTerminalStorageRecords = async (req, res, next) => {
     } catch (error) {
       return next(CreateError(500, "Error fetching terminal storage records."));
     }
-  };
+};
+
+export const updateStorageRecord = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const {
+            containerId,
+            terminalId,
+            dateImported,
+            dateExported,
+            currentlyStoredAt,
+            dateScheduledForExport
+        } = req.body;
+
+        // Ensure the container and terminal exist
+        if (containerId) {
+            const container = await Container.findById(containerId);
+            if (!container) {
+                return next(CreateError(404, "Container not found"));
+            }
+        }
+
+        if (terminalId) {
+            const terminal = await Terminal.findById(terminalId);
+            if (!terminal) {
+                return next(CreateError(404, "Terminal not found"));
+            }
+        }
+
+        // Find the storage record by ID and update it
+        const updatedStorage = await Storage.findByIdAndUpdate(
+            id,
+            {
+                containerId,
+                terminalId,
+                dateImported,
+                dateExported,
+                currentlyStoredAt,
+                dateScheduledForExport
+            },
+            { new: true, runValidators: true }
+        ).populate('containerId').populate('terminalId');
+
+        if (!updatedStorage) {
+            return next(CreateError(404, "Storage record not found"));
+        }
+
+        return next(CreateSuccess(200, "Storage record updated successfully", updatedStorage));
+    } catch (error) {
+        return next(CreateError(500, "Error updating storage record"));
+    }
+};

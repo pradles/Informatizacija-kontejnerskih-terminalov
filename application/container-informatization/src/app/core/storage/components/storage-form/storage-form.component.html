@@ -2,23 +2,28 @@
     <div class="bg-white shadow-sm rounded px-8 pt-6 pb-5 border border-gray-100 hover:shadow-md transition ease-in-out flex flex-row space-x-5 h-[calc(100vh-4rem)]">
         <div class="max-w-min h-full flex-grow">
             <h2 class="text-2xl mb-8">{{ isEditMode ? "Storage information:" : "Create new storage" }}</h2>
-            
-            <form [formGroup]="storageForm" (ngSubmit)="onSubmit()">
 
-                <div class="h-16 max-w-52">
-                    <span class="text-gray-600">Container: </span>
-                    <input 
-                        value="neki"
-                        disabled
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="h-16 max-w-52">
-                    <span class="text-gray-600">Terminal: </span>
-                    <input
-                        value=""
-                        disabled
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
+
+            <div class="flex flex-row space-x-4 mb-4">
+                <button 
+                class="font-bold py-1 px-2 border border-gray-300 rounded leading-8 cursor-pointer hover:bg-gray-200 focus:outline-none focus:shadow-outline transition ease-in-out delay-75" 
+                (click)="toggleInputForm()"
+                [class.text-white]="toggleInput"
+                [class.bg-blue-500]="toggleInput"
+                [class.border-blue-500]="toggleInput"
+                [ngClass]="{ 'hover:bg-gray-200': !toggleInput }">Container</button>
+                <button 
+                class="font-bold py-1 px-2 border border-gray-300 rounded leading-8 cursor-pointer hover:bg-gray-200 focus:outline-none focus:shadow-outline transition ease-in-out delay-75" 
+                (click)="toggleInputForm()"
+                [class.text-white]="!toggleInput"
+                [class.bg-blue-500]="!toggleInput"
+                [class.border-blue-500]="!toggleInput"
+                [ngClass]="{ 'hover:bg-gray-200': toggleInput }">Storage</button>
+            </div>
+
+
+            <form [formGroup]="storageForm" (ngSubmit)="onSubmit()" *ngIf="!toggleInput">
+
                 <hr class="my-5">
         
                 <!-- Date Imported Input -->
@@ -31,14 +36,14 @@
                     formControlName="dateImported" 
                     placeholder="Date Imported">
                 <span
-                    *ngIf="storageForm.hasError('required', 'dateImported') && (storageForm.controls['dateImported'].dirty || storageFormSubmitted)" 
+                    *ngIf="storageForm.hasError('required', 'dateImported') && (storageForm.controls['dateImported'].dirty || formSubmitted)" 
                     class="text-red-500">
                     Date Imported is required
                 </span>
                 </div>
             
                 <!-- Date Exported Input -->
-                <div class="h-20 mt-1 max-w-52">
+                <!-- <div class="h-20 mt-1 max-w-52">
                 <span class="text-gray-600">Date exported: </span>
                 <input 
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
@@ -46,7 +51,7 @@
                     type="datetime-local" 
                     formControlName="dateExported" 
                     placeholder="Date Exported">
-                </div>
+                </div> -->
             
                 <!-- Date Scheduled for Export Input -->
                 <div class="h-20 mt-1 max-w-52">
@@ -72,6 +77,86 @@
                 <!-- Hidden submit button -->
                 <button class="hidden" type="submit"></button>
             </form>
+
+                
+            <form [formGroup]="containerForm" (ngSubmit)="onSubmit()" *ngIf="toggleInput">
+
+                <hr class="my-5">
+        
+                <div class="h-16 min-w-52">
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="containerNumber" 
+                    type="text" 
+                    formControlName="containerNumber" 
+                    placeholder="Container number">
+                <span
+                    *ngIf="containerForm.hasError('required', 'containerNumber') && (containerForm.controls['containerNumber'].dirty || formSubmitted)" 
+                    class="text-red-500">
+                    Container num required.
+                </span>
+                </div>
+            
+                <div class="h-16 mt-1 max-w-52">
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="size" 
+                    type="text" 
+                    formControlName="size" 
+                    placeholder="Container size">
+                <span
+                    *ngIf="containerForm.hasError('required', 'size') && (containerForm.controls['size'].dirty || formSubmitted)" 
+                    class="text-red-500">
+                    Size is required.
+                </span>
+                </div>
+            
+                <div class="h-16 mt-1 max-w-52">
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="contents" 
+                    type="text" 
+                    formControlName="contents" 
+                    placeholder="Contents">
+                <span
+                    *ngIf="containerForm.hasError('required', 'contents') && (containerForm.controls['contents'].dirty || formSubmitted)" 
+                    class="text-red-500">
+                    Contents are required.
+                </span>
+                </div>
+
+                <div class="h-16 mt-1 max-w-52">
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="storageType" 
+                    type="text" 
+                    formControlName="storageType" 
+                    placeholder="Storage type.">
+                <span
+                    *ngIf="containerForm.hasError('required', 'storageType') && (containerForm.controls['storageType'].dirty || formSubmitted)" 
+                    class="text-red-500">
+                    Storage Type is required.
+                </span>
+                </div>
+
+                <div class="h-16 mt-1 max-w-52">
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="weight" 
+                    type="text" 
+                    formControlName="weight" 
+                    placeholder="Container weight">
+                <span
+                    *ngIf="containerForm.hasError('required', 'weight') && (containerForm.controls['weight'].dirty || formSubmitted)" 
+                    class="text-red-500">
+                    Weight is required.
+                </span>
+                </div>
+            
+                <!-- Hidden submit button -->
+                <button class="hidden" type="submit"></button>
+            </form>
+            
             
             
 
@@ -80,12 +165,12 @@
                     <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
                 </div>
                 <div *ngIf="isEditMode" class="flex items-center justify-between mt-10">
-                    <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="delete()">Delete</button>
+                    <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="delete()">Export</button>
                 </div>
             </div>
         </div>
         <div class="border w-full h-full">
-
+            <app-storage-three-d></app-storage-three-d>
         </div>
     </div>
 </div>

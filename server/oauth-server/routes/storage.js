@@ -1,12 +1,15 @@
 import express from 'express';
 
 import { verifyRole } from '../utils/verifiedToken.js';
-import { createStorageRecord, getAllStorageRecords, getStorageRecordsById, getTerminalStorageRecords } from '../controllers/storage.controller.js';
+import { createStorageRecord, getAllStorageRecords, getStorageRecordsById, getTerminalStorageRecords, updateStorageRecord } from '../controllers/storage.controller.js';
 
 const router = express.Router();
 
 // Create storage record
 router.post('/create', verifyRole, createStorageRecord);
+
+// Update storage record
+router.put('/update/:id', verifyRole, updateStorageRecord);
 
 // Get all storage records
 router.get('/', verifyRole, getAllStorageRecords);

@@ -16,8 +16,12 @@ export class StorageService {
     return this.http.post<any>(`${apiUrls.StorageServiceApi}create`, storageObj, {withCredentials:true} );
   }
 
+  updateStorageRecord(storageObj: any, storageId: string) {
+    return this.http.put<any>(`${apiUrls.StorageServiceApi}update/${storageId}`, storageObj, {withCredentials:true} );
+  }
+
   getTerminalStorageRecords(terminalId: string) {
-    return this.http.get<any>(`${apiUrls.StorageServiceApi}terminal/664c9fe3f5119576d738002c`, {withCredentials:true} );
+    return this.http.get<any>(`${apiUrls.StorageServiceApi}terminal/${terminalId}`, {withCredentials:true} );
   }
 
   getStorageRecordById(storageRecordId: string) {

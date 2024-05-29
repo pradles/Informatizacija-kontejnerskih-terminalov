@@ -46,8 +46,9 @@ export class DetailsComponent implements OnInit{
       return {
         ContainerNumber: container.containerNumber,
         containerSize: container.size == 0 ? '3m' : container.size == 1 ? '6m' : '12m',
-        containerLocation: container.currentlyStoredAt,
+        containerLocation: storage.currentlyStoredAt,
         containerContents: container.contents,
+        containerWeight: container.weight,
         StorageType: container.storageType == 1 ? 'Special' : 'Normal',
         dateImported: storage.dateImported,
         dateExported: storage.dateExported,
