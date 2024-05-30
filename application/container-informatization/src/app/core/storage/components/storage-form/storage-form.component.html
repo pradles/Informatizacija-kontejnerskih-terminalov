@@ -98,17 +98,19 @@
                 </div>
             
                 <div class="h-16 mt-1 max-w-52">
-                <input 
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                    name="size" 
-                    type="text" 
-                    formControlName="size" 
-                    placeholder="Container size">
-                <span
-                    *ngIf="containerForm.hasError('required', 'size') && (containerForm.controls['size'].dirty || formSubmitted)" 
-                    class="text-red-500">
-                    Size is required.
-                </span>
+                    <select 
+                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                      formControlName="size">
+                      <option value="" disabled selected>Container size</option>
+                      <option value="0">3m</option>
+                      <option value="1">6m</option>
+                      <option value="2">12m</option>
+                    </select>
+                    <span
+                      *ngIf="(containerForm.hasError('size') || containerForm.hasError('invalidSize', 'size')) && (containerForm.controls['size'].dirty || formSubmitted)" 
+                      class="text-red-500">
+                      Size is required.
+                    </span>
                 </div>
             
                 <div class="h-16 mt-1 max-w-52">
@@ -126,17 +128,18 @@
                 </div>
 
                 <div class="h-16 mt-1 max-w-52">
-                <input 
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                    name="storageType" 
-                    type="text" 
-                    formControlName="storageType" 
-                    placeholder="Storage type.">
-                <span
-                    *ngIf="containerForm.hasError('required', 'storageType') && (containerForm.controls['storageType'].dirty || formSubmitted)" 
-                    class="text-red-500">
-                    Storage Type is required.
-                </span>
+                    <select 
+                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                      formControlName="storageType">
+                      <option value="" disabled selected class="text-gray-700">Storage type</option>
+                      <option value="2">Normal</option>
+                      <option value="1">Special</option>
+                    </select>
+                    <span
+                      *ngIf="(containerForm.hasError('required', 'storageType') || containerForm.hasError('invalidStorageType', 'storageType')) && (containerForm.controls['storageType'].dirty || formSubmitted)" 
+                      class="text-red-500">
+                      Storage Type is required.
+                    </span>
                 </div>
 
                 <div class="h-16 mt-1 max-w-52">

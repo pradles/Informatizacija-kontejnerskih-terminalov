@@ -47,4 +47,17 @@ export class ValidatorsServiceService {
       return value.length >= minLength ? null : { minLengthInvalid: true };
     };
   }
+
+  allowedSizesValidator(allowedSizes: string[]) {
+    return (control: { value: string }) => {
+      return allowedSizes.includes(control.value) ? null : { invalidSize: true };
+    };
+  }
+
+  allowedStorageTypesValidator(allowedStorageTypes: string[]) {
+    return (control: { value: string }) => {
+      return allowedStorageTypes.includes(control.value) ? null : { invalidStorageType: true };
+    };
+  }
+
 }

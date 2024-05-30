@@ -6,6 +6,8 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { StorageService } from '../../../../shared/services/api/storage.service';
 import { ContainerService } from '../../../../shared/services/api/container.service';
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
+import { ValidatorsServiceService } from '../../../authentication/services/validators.service.service';
+
 import { PageStorageComponent } from '../../pages/page-storage/page-storage.component';
 import { StorageThreeDComponent } from '../storage-three-d/storage-three-d.component';
 
@@ -21,12 +23,14 @@ export class StorageFormComponent implements OnInit{
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
 
+  validatorService = inject(ValidatorsServiceService);
   containerService = inject(ContainerService);
   storageService = inject(StorageService);
   dashboardService = inject(DashboardService);
   pageStorage = inject(PageStorageComponent);
 
   storageData: any;
+  singleStorageData: any;
 
   formSubmitted: boolean = false;
   storageForm!: FormGroup;
@@ -46,9 +50,9 @@ export class StorageFormComponent implements OnInit{
 
     this.containerForm = this.fb.group({
       containerNumber: ['', Validators.required],
-      size: ['', Validators.required],
+      size: ['', [Validators.required, this.validatorService.allowedSizesValidator(['0','1','2'])]],
       contents: ['', Validators.required],
-      storageType: ['', Validators.required],
+      storageType: ['', [Validators.required, this.validatorService.allowedStorageTypesValidator(['1','2'])]],
       weight: ['', Validators.required],
     });
     
@@ -57,33 +61,48 @@ export class StorageFormComponent implements OnInit{
       this.storageId = params.get('storageId');
       if (this.storageId) {
         this.isEditMode = true;
-        this.loadStorageData(this.storageId);
+        this.dashboardService.getSelectedTerminal().subscribe({
+          next: (selectedTerminal) => {
+            if (selectedTerminal && selectedTerminal.id) {
+              this.storageService.getTerminalStorageRecords(selectedTerminal.id).subscribe({
+                next: (res) => {
+                  console.log(res);
+                  this.storageData = res.data;
+                  if (this.storageId) 
+                    this.loadStorageData(this.storageId);
+                },
+                error: (err) => {
+                  console.log(err);
+                  this.pageStorage.openErrorModal(err.error.message);
+                }
+              });
+            }
+          },
+          error: (err) => {
+            console.log(err);
+            this.pageStorage.openErrorModal(err.error.message);
+          }
+        });
       }
     });
   }
 
   loadStorageData(id: string): void {
-    this.storageService.getStorageRecordById(id)
-      .subscribe({
-        next:(res)=>{
-          console.log(res);
-          this.storageData = res.data;
-          // Format the dates properly
-          const formattedData = {
-            ...res.data,
-            dateImported: this.formatDate(res.data.dateImported),
-            dateExported: this.formatDate(res.data.dateExported),
-            dateScheduledForExport: this.formatDate(res.data.dateScheduledForExport)
-          };
-
-          this.storageForm.patchValue(formattedData);
-
-          this.containerForm.patchValue(res.data.containerId[0]);
-        },
-        error:(err)=>{
-          console.log(err);
+    this.storageForm.reset();
+    this.containerForm.reset();
+    this.storageData.forEach((storage: any) => {
+      if(storage._id == id) {
+        const formattedData = {
+          ...storage,
+          dateImported: this.formatDate(storage.dateImported),
+          dateExported: this.formatDate(storage.dateExported),
+          dateScheduledForExport: this.formatDate(storage.dateScheduledForExport)
         }
-      });
+        this.storageForm.patchValue(formattedData);
+        this.containerForm.patchValue(storage.containerId[0]);
+        this.singleStorageData = storage;
+      }
+    });
   }
 
   formatDate(dateString: string): string {
@@ -103,6 +122,8 @@ export class StorageFormComponent implements OnInit{
   }
 
   onSubmit(): void {
+    this.formSubmitted = true;
+
     const containerObj = {
       containerNumber: this.containerForm.value.containerNumber,
       size: this.containerForm.value.size,
@@ -112,27 +133,29 @@ export class StorageFormComponent implements OnInit{
     }
     if(this.containerForm.valid && this.storageForm.valid) {
       if(this.isEditMode){
-        this.containerService.updateContainer(containerObj,this.storageData.containerId[0]._id).subscribe({
+        this.containerService.updateContainer(containerObj,this.singleStorageData.containerId[0]._id).subscribe({
           next:(res)=>{
             console.log(res);
             const storageObj = {
-              containerId: this.storageData.containerId[0]._id,
-              terminalId: this.storageData.terminalId[0]._id,
+              containerId: this.singleStorageData.containerId[0]._id,
+              terminalId: this.singleStorageData.terminalId[0]._id,
               dateImported: this.storageForm.value.dateImported,
               currentlyStoredAt: this.storageForm.value.currentlyStoredAt,
               dateScheduledForExport: this.storageForm.value.dateScheduledForExport
             }
-            this.storageService.updateStorageRecord(storageObj, this.storageData._id).subscribe({
+            this.storageService.updateStorageRecord(storageObj, this.singleStorageData._id).subscribe({
               next:(res)=>{
                 console.log(res);
               },
               error:(err)=>{
                 console.log(err);
+                this.pageStorage.openErrorModal(err.error.message);
               }
             })
           }, 
           error:(err)=>{
             console.log(err);
+            this.pageStorage.openErrorModal(err.error.message);
           }
         })
 
@@ -156,7 +179,7 @@ export class StorageFormComponent implements OnInit{
                 },
                 error:(err)=>{
                   console.log(err)
-                  // this.pageTerminal.openErrorModal(err.error.message);
+                  this.pageStorage.openErrorModal(err.error.message);
                 }
               });
             }
@@ -164,6 +187,7 @@ export class StorageFormComponent implements OnInit{
           },
           error:(err)=>{
             console.log(err);
+            this.pageStorage.openErrorModal(err.error.message);
           }
         });
       }
@@ -171,7 +195,19 @@ export class StorageFormComponent implements OnInit{
   }
 
   delete() {
-    
+
+  }
+
+  changeStorageData(id: string): void {
+    this.loadStorageData(id);
+    this.changeUrlId(id);
+  }
+
+  changeUrlId(newId: string) {
+    this.router.navigate(['../', newId], {
+      relativeTo: this.activatedRoute,
+      replaceUrl: true, // This prevents adding a new entry to the history
+    });
   }
 
 }
