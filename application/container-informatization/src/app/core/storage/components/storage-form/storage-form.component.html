@@ -71,7 +71,10 @@
                         name="currentlyStoredAt" 
                         type="text" 
                         formControlName="currentlyStoredAt" 
-                        placeholder="Currently Stored At">
+                        value="{{ this.currentPosition }}"
+                        placeholder="Currently Stored At"
+                        (ngModelChange)="checkPosition()">
+                    <button class="underline">Move</button>
                 </div>
             
                 <!-- Hidden submit button -->

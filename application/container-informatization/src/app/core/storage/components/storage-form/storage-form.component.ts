@@ -7,6 +7,7 @@ import { StorageService } from '../../../../shared/services/api/storage.service'
 import { ContainerService } from '../../../../shared/services/api/container.service';
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
 import { ValidatorsServiceService } from '../../../authentication/services/validators.service.service';
+import { StorageFormService } from '../../services/storage-form.service';
 
 import { PageStorageComponent } from '../../pages/page-storage/page-storage.component';
 import { StorageThreeDComponent } from '../storage-three-d/storage-three-d.component';
@@ -22,12 +23,14 @@ export class StorageFormComponent implements OnInit{
   fb = inject(FormBuilder);
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
-
+  
+  @ViewChild(StorageThreeDComponent) storageThreeD!: StorageThreeDComponent;
   validatorService = inject(ValidatorsServiceService);
   containerService = inject(ContainerService);
   storageService = inject(StorageService);
   dashboardService = inject(DashboardService);
   pageStorage = inject(PageStorageComponent);
+  storageFormService = inject(StorageFormService);
 
   storageData: any;
   singleStorageData: any;
@@ -37,8 +40,10 @@ export class StorageFormComponent implements OnInit{
   containerForm!: FormGroup;
   storageId: string | null = null;
   isEditMode: boolean = false;
-
   toggleInput: boolean = false;
+
+  currentPosition!: string;
+
 
   ngOnInit(): void {
     this.storageForm = this.fb.group({
@@ -56,6 +61,7 @@ export class StorageFormComponent implements OnInit{
       weight: ['', Validators.required],
     });
     
+    this.storageFormService.position$.subscribe(val => this.currentPosition = val);
 
     this.activatedRoute.paramMap.subscribe(params => {
       this.storageId = params.get('storageId');
@@ -101,6 +107,7 @@ export class StorageFormComponent implements OnInit{
         this.storageForm.patchValue(formattedData);
         this.containerForm.patchValue(storage.containerId[0]);
         this.singleStorageData = storage;
+        this.updatePosition(storage.currentlyStoredAt);
       }
     });
   }
@@ -208,6 +215,17 @@ export class StorageFormComponent implements OnInit{
       relativeTo: this.activatedRoute,
       replaceUrl: true, // This prevents adding a new entry to the history
     });
+  }
+
+  updatePosition(newValue: string) {
+    this.storageFormService.setPosition(newValue);
+  }
+
+  checkPosition() {
+    // console.log(this.storageForm.value.currentlyStoredAt.length)
+    if(this.storageForm.value.currentlyStoredAt && this.storageForm.value.currentlyStoredAt.length == 3){
+      this.storageThreeD.moveContainer(this.storageForm.value.currentlyStoredAt);      
+    }
   }
 
 }

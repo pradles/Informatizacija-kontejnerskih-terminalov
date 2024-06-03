@@ -11,6 +11,7 @@ import Stats from 'stats.js';
 
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
 import { TerminalService } from '../../../../shared/services/api/terminal.service';
+import { StorageFormService } from '../../services/storage-form.service';
 
 @Component({
   selector: 'app-storage-three-d',
@@ -22,8 +23,10 @@ import { TerminalService } from '../../../../shared/services/api/terminal.servic
 export class StorageThreeDComponent implements AfterViewInit {
   dashboardService = inject(DashboardService);
   terminalService = inject(TerminalService);
+  storageFormService = inject(StorageFormService);
 
   terminalData!: any;
+  currentPosition!: string;
 
   @ViewChild('rendererContainer', { static: true }) rendererContainer!: ElementRef;
   private stats = new Stats();
@@ -41,6 +44,7 @@ export class StorageThreeDComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.initializeScene();
     this.loadStorageData();
+    this.storageFormService.position$.subscribe(val => this.currentPosition = val);
   }
 
   loadStorageData(): void {
@@ -49,6 +53,7 @@ export class StorageThreeDComponent implements AfterViewInit {
         if (selectedTerminal && selectedTerminal.id) {
           this.terminalService.getTerminalById(selectedTerminal.id).subscribe({
             next: (res) => {
+              console.log(res);
               this.terminalData = res.data.array3D;
               this.addContainers();
             },
@@ -153,6 +158,7 @@ export class StorageThreeDComponent implements AfterViewInit {
   
       for (let x = 0; x < this.terminalData.length; x++) {
         for (let y = 0; y < this.terminalData[x].length; y++) {
+          this.createRectangleOutline(new THREE.Vector3(y * 6.75, 0, x * 2.75), this.terminalData[x][y][0].accessibility);
           for (let z = 0; z < this.terminalData[x][y].length; z++) {
             const cell = this.terminalData[x][y][z];
             let model: THREE.Mesh | null = null;
@@ -180,6 +186,7 @@ export class StorageThreeDComponent implements AfterViewInit {
   
               this.scene.add(model);
               this.containerMeshes.push(model);
+              this.terminalData[x][y][z].mesh = model;
             }
           }
         }
@@ -187,7 +194,26 @@ export class StorageThreeDComponent implements AfterViewInit {
     }).catch(error => {
       console.error('An error occurred while loading models', error);
     });
-  }  
+  }
+  
+  createRectangleOutline(position: THREE.Vector3, value: number) {
+    if(value == 0)
+      return
+    const color = value === 2 ? 0x00ff00 : 0xffff00; // Green for 2, Yellow for 1
+    const vertices = new Float32Array([
+         0.0,  0.0, 0.0,  // Top-left
+        -6.36,  0.0, 0.0,  // Top-right
+        -6.36,  0.0, -2.42,  // Bottom-right
+         0.0,  0.0, -2.42,  // Bottom-left
+         0.0,  0.0, 0.0   // Closing the rectangle by connecting back to the top-left
+    ]);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    const material = new THREE.LineBasicMaterial({ color });
+    const rectangleOutline = new THREE.Line(geometry, material);
+    rectangleOutline.position.set(position.x, position.y, position.z);
+    this.scene.add(rectangleOutline);
+  }
 
   private onMouseMove(event: MouseEvent): void {
     const rect = this.renderer.domElement.getBoundingClientRect();
@@ -219,4 +245,22 @@ export class StorageThreeDComponent implements AfterViewInit {
       }
     }
   }
+
+  moveContainer(position: string) {
+    const x = +this.currentPosition.charAt(0);
+    const y = +this.currentPosition.charAt(1);
+    const z = +this.currentPosition.charAt(2);
+    console.log(this.terminalData[x][y][z])
+    if(this.terminalData[x][y][z].mesh){
+      const x2 = +position.charAt(0);
+      const y2 = +position.charAt(1);
+      const z2 = +position.charAt(2);
+      this.terminalData[x][y][z].mesh.position.set(y2 * 6.75, z2 * 2.9, x2 * 2.75)
+      this.terminalData[x][y][z].mesh.userData['containerData'].location = { x: x2, y: y2, z: z2 },
+      this.terminalData[x2][y2][z2] = this.terminalData[x][y][z];
+      this.terminalData[x][y][z].occupation = null
+      this.terminalData[x][y][z].size = null
+    }
+  }
+
 }
