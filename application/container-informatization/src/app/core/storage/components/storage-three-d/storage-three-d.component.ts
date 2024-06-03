@@ -12,6 +12,9 @@ import Stats from 'stats.js';
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
 import { TerminalService } from '../../../../shared/services/api/terminal.service';
 import { StorageFormService } from '../../services/storage-form.service';
+import { LocationService } from '../../services/location.service';
+
+import { StorageFormComponent } from '../storage-form/storage-form.component';
 
 @Component({
   selector: 'app-storage-three-d',
@@ -24,9 +27,12 @@ export class StorageThreeDComponent implements AfterViewInit {
   dashboardService = inject(DashboardService);
   terminalService = inject(TerminalService);
   storageFormService = inject(StorageFormService);
+  locationService = inject(LocationService);
+
+  storageForm = inject(StorageFormComponent);
 
   terminalData!: any;
-  currentPosition!: string;
+  currentPosition!: { x: number, y: number, z: number };
 
   @ViewChild('rendererContainer', { static: true }) rendererContainer!: ElementRef;
   private stats = new Stats();
@@ -242,25 +248,50 @@ export class StorageThreeDComponent implements AfterViewInit {
       const intersectedObject = intersects[0].object;
       if (intersectedObject.userData && intersectedObject.userData['containerData']) {
         console.log(intersectedObject.userData['containerData']);
+        console.log(this.terminalData)
+        console.log(this.currentPosition)
+        this.storageForm.changeStorageData(intersectedObject.userData['containerData'].occupation)
       }
     }
   }
 
-  moveContainer(position: string) {
-    const x = +this.currentPosition.charAt(0);
-    const y = +this.currentPosition.charAt(1);
-    const z = +this.currentPosition.charAt(2);
-    console.log(this.terminalData[x][y][z])
-    if(this.terminalData[x][y][z].mesh){
-      const x2 = +position.charAt(0);
-      const y2 = +position.charAt(1);
-      const z2 = +position.charAt(2);
-      this.terminalData[x][y][z].mesh.position.set(y2 * 6.75, z2 * 2.9, x2 * 2.75)
-      this.terminalData[x][y][z].mesh.userData['containerData'].location = { x: x2, y: y2, z: z2 },
-      this.terminalData[x2][y2][z2] = this.terminalData[x][y][z];
-      this.terminalData[x][y][z].occupation = null
-      this.terminalData[x][y][z].size = null
+  moveContainer(position: { x: number, y: number, z: number }) {
+    const x = this.currentPosition.x;
+    const y = this.currentPosition.y;
+    const z = this.currentPosition.z;
+
+    if (this.terminalData[x][y][z]?.mesh) {
+        const x2 = position.x;
+        const y2 = position.y;
+        const z2 = position.z;
+
+        if (this.locationService.checkLocation(this.terminalData, { x, y, z }, { x: x2, y: y2, z: z2 }, this.terminalData[x][y][z].size, this.terminalData[x][y][z].accessibility)) {
+            console.log("allowed")
+            // Update mesh position
+            this.terminalData[x][y][z].mesh.position.set(y2 * 6.75, z2 * 2.9, x2 * 2.75);
+            this.terminalData[x][y][z].mesh.userData['containerData'].location = { x: x2, y: y2, z: z2 };
+
+            // Transfer data to the new location
+            this.terminalData[x2][y2][z2] = {
+                ...this.terminalData[x2][y2][z2],
+                occupation: this.terminalData[x][y][z].occupation,
+                size: this.terminalData[x][y][z].size,
+                mesh: this.terminalData[x][y][z].mesh,
+            };
+
+            // Clear data from the old location
+            this.terminalData[x][y][z] = {
+                ...this.terminalData[x][y][z],
+                occupation: null,
+                size: null,
+                mesh: undefined,
+            };
+
+            this.storageFormService.setPosition({x: x2, y: y2, z:z2});
+        }
     }
-  }
+
+}
+
 
 }

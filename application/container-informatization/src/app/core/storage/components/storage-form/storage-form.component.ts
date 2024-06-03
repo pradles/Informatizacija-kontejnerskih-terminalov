@@ -42,14 +42,17 @@ export class StorageFormComponent implements OnInit{
   isEditMode: boolean = false;
   toggleInput: boolean = false;
 
-  currentPosition!: string;
+  currentPosition!: { x: number, y: number, z: number };
 
 
   ngOnInit(): void {
+    console.log("new")
     this.storageForm = this.fb.group({
       dateImported: [new Date().toISOString().slice(0,16), Validators.required],
       dateExported: [''],
-      currentlyStoredAt: [''],
+      currentlyStoredAtX: [''],
+      currentlyStoredAtY: [''],
+      currentlyStoredAtZ: [''],
       dateScheduledForExport: [''],
     });
 
@@ -100,6 +103,9 @@ export class StorageFormComponent implements OnInit{
       if(storage._id == id) {
         const formattedData = {
           ...storage,
+          currentlyStoredAtX: storage.currentlyStoredAt.x,
+          currentlyStoredAtY: storage.currentlyStoredAt.y,
+          currentlyStoredAtZ: storage.currentlyStoredAt.z,
           dateImported: this.formatDate(storage.dateImported),
           dateExported: this.formatDate(storage.dateExported),
           dateScheduledForExport: this.formatDate(storage.dateScheduledForExport)
@@ -147,7 +153,7 @@ export class StorageFormComponent implements OnInit{
               containerId: this.singleStorageData.containerId[0]._id,
               terminalId: this.singleStorageData.terminalId[0]._id,
               dateImported: this.storageForm.value.dateImported,
-              currentlyStoredAt: this.storageForm.value.currentlyStoredAt,
+              currentlyStoredAt: {x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ},
               dateScheduledForExport: this.storageForm.value.dateScheduledForExport
             }
             this.storageService.updateStorageRecord(storageObj, this.singleStorageData._id).subscribe({
@@ -206,6 +212,7 @@ export class StorageFormComponent implements OnInit{
   }
 
   changeStorageData(id: string): void {
+    console.log(id)
     this.loadStorageData(id);
     this.changeUrlId(id);
   }
@@ -214,17 +221,18 @@ export class StorageFormComponent implements OnInit{
     this.router.navigate(['../', newId], {
       relativeTo: this.activatedRoute,
       replaceUrl: true, // This prevents adding a new entry to the history
+      skipLocationChange: true // This prevents triggering ngOnInit
     });
   }
 
-  updatePosition(newValue: string) {
+  updatePosition(newValue: { x: number, y: number, z: number }) {
     this.storageFormService.setPosition(newValue);
+    this.checkPosition();
   }
 
   checkPosition() {
-    // console.log(this.storageForm.value.currentlyStoredAt.length)
-    if(this.storageForm.value.currentlyStoredAt && this.storageForm.value.currentlyStoredAt.length == 3){
-      this.storageThreeD.moveContainer(this.storageForm.value.currentlyStoredAt);      
+    if(this.storageForm.value.currentlyStoredAtX != null && this.storageForm.value.currentlyStoredAtY != null && this.storageForm.value.currentlyStoredAtZ != null){
+      this.storageThreeD.moveContainer({x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ});      
     }
   }
 

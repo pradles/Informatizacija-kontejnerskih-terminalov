@@ -65,16 +65,40 @@
                 </div>
 
                 <!-- Currently Stored At Input -->
-                <div class="h-16 mt-1 max-w-52">
-                    <input 
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                        name="currentlyStoredAt" 
-                        type="text" 
-                        formControlName="currentlyStoredAt" 
-                        value="{{ this.currentPosition }}"
-                        placeholder="Currently Stored At"
-                        (ngModelChange)="checkPosition()">
-                    <button class="underline">Move</button>
+                <div class="h-20 mt-1 max-w-52 flex flex-row space-x-2">
+                    <div>
+                        <span class="text-gray-600">x: </span>
+                        <input 
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                            name="currentlyStoredAtX" 
+                            type="text" 
+                            formControlName="currentlyStoredAtX" 
+                            value="{{ this.currentPosition.x }}"
+                            placeholder="X"
+                            (ngModelChange)="checkPosition()">
+                    </div>
+                    <div>
+                        <span class="text-gray-600">y: </span>
+                        <input 
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                            name="currentlyStoredAtY" 
+                            type="text" 
+                            formControlName="currentlyStoredAtY" 
+                            value="{{ this.currentPosition.y }}"
+                            placeholder="Y"
+                            (ngModelChange)="checkPosition()">
+                    </div>
+                    <div>
+                        <span class="text-gray-600">z: </span>
+                        <input 
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                            name="currentlyStoredAtZ" 
+                            type="text" 
+                            formControlName="currentlyStoredAtZ" 
+                            value="{{ this.currentPosition.z }}"
+                            placeholder="Z"
+                            (ngModelChange)="checkPosition()">
+                    </div>
                 </div>
             
                 <!-- Hidden submit button -->

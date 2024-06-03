@@ -1,5 +1,21 @@
 import mongoose, {Schema} from "mongoose";
 
+// Define a schema for the position
+const PositionSchema = new Schema({
+  x: {
+    type: Number,
+    required: true,
+  },
+  y: {
+    type: Number,
+    required: true,
+  },
+  z: {
+    type: Number,
+    required: true,
+  }
+});
+
 const StorageSchema = mongoose.Schema(
   {
     containerId: {
@@ -21,7 +37,7 @@ const StorageSchema = mongoose.Schema(
       required: false,
     },
     currentlyStoredAt: {
-      type: String,
+      type: PositionSchema,
       required: false,
     },
     dateScheduledForExport: {
