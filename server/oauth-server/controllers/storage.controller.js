@@ -31,9 +31,9 @@ export const createStorageRecord = async (req, res, next)=>{
             dateScheduledForExport, // This is optional
           });
 
-        await storage.save();
+        const savedStorage = await storage.save();
 
-        return next(CreateSuccess(200, "Container added to terminal storage successfully."))
+        return next(CreateSuccess(200, `Container added to terminal storage successfully. Storage ID:${savedStorage._id}`))
     } catch (error) {
         return next(CreateError(500, "Error adding container to terminal storage."))
     }

@@ -48,15 +48,15 @@ export class ValidatorsServiceService {
     };
   }
 
-  allowedSizesValidator(allowedSizes: string[]) {
-    return (control: { value: string }) => {
-      return allowedSizes.includes(control.value) ? null : { invalidSize: true };
+  allowedSizesValidator(allowedSizes: number[]) {
+    return (control: { value: number }) => {
+      return allowedSizes.includes(+control.value) ? null : { invalidSize: true };
     };
   }
 
-  allowedStorageTypesValidator(allowedStorageTypes: string[]) {
-    return (control: { value: string }) => {
-      return allowedStorageTypes.includes(control.value) ? null : { invalidStorageType: true };
+  allowedStorageTypesValidator(allowedStorageTypes: number[]) {
+    return (control: { value: number }) => {
+      return allowedStorageTypes.includes(+control.value) ? null : { invalidStorageType: true };
     };
   }
 

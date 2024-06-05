@@ -2,16 +2,16 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 interface Position {
-  x: number;
-  y: number;
-  z: number;
+  x: number | null;
+  y: number | null;
+  z: number | null;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class StorageFormService {
-  private positionSubject = new BehaviorSubject<Position>({ x: 0, y: 0, z: 0 }); // Default initial value
+  private positionSubject = new BehaviorSubject<Position>({ x: null, y: null, z: null }); // Initial value with null
   position$ = this.positionSubject.asObservable();
 
   getPosition(): Position {

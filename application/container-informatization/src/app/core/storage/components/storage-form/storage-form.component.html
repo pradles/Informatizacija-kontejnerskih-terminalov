@@ -134,7 +134,7 @@
                       <option value="2">12m</option>
                     </select>
                     <span
-                      *ngIf="(containerForm.hasError('size') || containerForm.hasError('invalidSize', 'size')) && (containerForm.controls['size'].dirty || formSubmitted)" 
+                    *ngIf="(containerForm.hasError('required','size') || containerForm.hasError('invalidSize', 'size')) && (containerForm.controls['size'].dirty || formSubmitted)" 
                       class="text-red-500">
                       Size is required.
                     </span>
@@ -200,7 +200,7 @@
             </div>
         </div>
         <div class="border w-full h-full">
-            <app-storage-three-d></app-storage-three-d>
+            <app-storage-three-d [isEditMode]="isEditMode"></app-storage-three-d>
         </div>
     </div>
 </div>

@@ -46,7 +46,9 @@ export class DetailsComponent implements OnInit{
       return {
         ContainerNumber: container.containerNumber,
         containerSize: container.size == 0 ? '3m' : container.size == 1 ? '6m' : '12m',
-        containerLocation: storage.currentlyStoredAt,
+        containerLocation: `${storage.currentlyStoredAt?.x !== undefined ? storage.currentlyStoredAt.x : ""} 
+                            ${storage.currentlyStoredAt?.y !== undefined ? storage.currentlyStoredAt.y : ""} 
+                            ${storage.currentlyStoredAt?.z !== undefined ? storage.currentlyStoredAt.z : ""}`,
         containerContents: container.contents,
         containerWeight: container.weight,
         StorageType: container.storageType == 1 ? 'Special' : 'Normal',

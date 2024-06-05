@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, HostListener, AfterViewInit, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, HostListener, AfterViewInit, inject, Input } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -30,9 +30,10 @@ export class StorageThreeDComponent implements AfterViewInit {
   locationService = inject(LocationService);
 
   storageForm = inject(StorageFormComponent);
+  @Input() isEditMode: boolean | undefined;
 
   terminalData!: any;
-  currentPosition!: { x: number, y: number, z: number };
+  currentPosition!: { x: number | null, y: number | null, z: number | null };
 
   @ViewChild('rendererContainer', { static: true }) rendererContainer!: ElementRef;
   private stats = new Stats();
@@ -46,6 +47,13 @@ export class StorageThreeDComponent implements AfterViewInit {
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
   private containerMeshes: THREE.Mesh[] = [];
+
+  private modelUrls = {
+    1: "../../../../assets/3js/containers/6m_yellow.glb",
+    2: "../../../../assets/3js/containers/6m_green.glb"
+  };
+
+  private loadedModels: { [key: number]: THREE.Mesh } = {};
 
   ngAfterViewInit(): void {
     this.initializeScene();
@@ -61,7 +69,10 @@ export class StorageThreeDComponent implements AfterViewInit {
             next: (res) => {
               console.log(res);
               this.terminalData = res.data.array3D;
-              this.addContainers();
+              this.loadModels().then(models => {
+                this.loadedModels = models;
+                this.addContainers();
+              });
             },
             error: (err) => {
               console.error(err);
@@ -139,88 +150,6 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.outlinePass.setSize(containerWidth, containerHeight);
   }
 
-  private addContainers(): void {
-    const models = {
-      1: "../../../../assets/3js/containers/6m_yellow.glb",
-      2: "../../../../assets/3js/containers/6m_green.glb"
-    };
-  
-    const loadModel = (url: string): Promise<THREE.Mesh> => {
-      return new Promise((resolve, reject) => {
-        this.loader.load(url, gltf => {
-          const model = gltf.scene.children[0] as THREE.Mesh;
-          resolve(model.clone());
-        }, undefined, error => {
-          reject(error);
-        });
-      });
-    };
-  
-    Promise.all([
-      loadModel(models[1]),
-      loadModel(models[2])
-    ]).then(([yellowModel, greenModel]) => {
-      const dummy = new THREE.Object3D();
-  
-      for (let x = 0; x < this.terminalData.length; x++) {
-        for (let y = 0; y < this.terminalData[x].length; y++) {
-          this.createRectangleOutline(new THREE.Vector3(y * 6.75, 0, x * 2.75), this.terminalData[x][y][0].accessibility);
-          for (let z = 0; z < this.terminalData[x][y].length; z++) {
-            const cell = this.terminalData[x][y][z];
-            let model: THREE.Mesh | null = null;
-            if(cell.occupation != null) { // MAYBE A BETTER CHECK BUT THIS ONE IS FINE
-              if (cell.accessibility === 1) {
-                model = yellowModel.clone();
-              } else if (cell.accessibility === 2) {
-                model = greenModel.clone();
-              }
-            }
-  
-            if (model) {
-              dummy.position.set(y * 6.75, z * 2.9, x * 2.75);
-              dummy.updateMatrix();
-              model.position.copy(dummy.position);
-              model.updateMatrix();
-              
-              // Add containerData to the model's userData
-              model.userData['containerData'] = {
-                location: { x, y, z },
-                size: cell.size,
-                occupation: cell.occupation,
-                accessibility: cell.accessibility
-              };
-  
-              this.scene.add(model);
-              this.containerMeshes.push(model);
-              this.terminalData[x][y][z].mesh = model;
-            }
-          }
-        }
-      }
-    }).catch(error => {
-      console.error('An error occurred while loading models', error);
-    });
-  }
-  
-  createRectangleOutline(position: THREE.Vector3, value: number) {
-    if(value == 0)
-      return
-    const color = value === 2 ? 0x00ff00 : 0xffff00; // Green for 2, Yellow for 1
-    const vertices = new Float32Array([
-         0.0,  0.0, 0.0,  // Top-left
-        -6.36,  0.0, 0.0,  // Top-right
-        -6.36,  0.0, -2.42,  // Bottom-right
-         0.0,  0.0, -2.42,  // Bottom-left
-         0.0,  0.0, 0.0   // Closing the rectangle by connecting back to the top-left
-    ]);
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    const material = new THREE.LineBasicMaterial({ color });
-    const rectangleOutline = new THREE.Line(geometry, material);
-    rectangleOutline.position.set(position.x, position.y, position.z);
-    this.scene.add(rectangleOutline);
-  }
-
   private onMouseMove(event: MouseEvent): void {
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -248,50 +177,179 @@ export class StorageThreeDComponent implements AfterViewInit {
       const intersectedObject = intersects[0].object;
       if (intersectedObject.userData && intersectedObject.userData['containerData']) {
         console.log(intersectedObject.userData['containerData']);
-        console.log(this.terminalData)
-        console.log(this.currentPosition)
-        this.storageForm.changeStorageData(intersectedObject.userData['containerData'].occupation)
+        if(this.isEditMode)
+          this.storageForm.changeStorageData(intersectedObject.userData['containerData'].occupation)
       }
     }
   }
+
+  private loadModel(url: string): Promise<THREE.Mesh> {
+    return new Promise((resolve, reject) => {
+      this.loader.load(url, gltf => {
+        const model = gltf.scene.children[0] as THREE.Mesh;
+        resolve(model.clone());
+      }, undefined, error => {
+        reject(error);
+      });
+    });
+  }
+
+  private loadModels(): Promise<{ [key: number]: THREE.Mesh }> {
+    return Promise.all([
+      this.loadModel(this.modelUrls[1]),
+      this.loadModel(this.modelUrls[2])
+    ]).then(([yellowModel, greenModel]) => {
+      return {
+        1: yellowModel,
+        2: greenModel
+      };
+    }).catch(error => {
+      console.error('An error occurred while loading models', error);
+      throw error;
+    });
+  }
+
+  private addContainers(): void {
+    for (let x = 0; x < this.terminalData.length; x++) {
+      for (let y = 0; y < this.terminalData[x].length; y++) {
+        this.createRectangleOutline(new THREE.Vector3(y * 6.75, 0, x * 2.75), this.terminalData[x][y][0].accessibility);
+        for (let z = 0; z < this.terminalData[x][y].length; z++) {
+          const cell = this.terminalData[x][y][z];
+          if (cell.occupation != null) { // MAYBE A BETTER CHECK BUT THIS ONE IS FINE
+            this.createContainer({ x, y, z }, cell.size, cell.accessibility);
+          }
+        }
+      }
+    }
+  }
+
+  createRectangleOutline(position: THREE.Vector3, value: number) {
+    if(value == 0)
+      return
+    const color = value === 2 ? 0x00ff00 : 0xffff00; // Green for 2, Yellow for 1
+    const vertices = new Float32Array([
+         0.0,  0.0, 0.0,  // Top-left
+        -6.36,  0.0, 0.0,  // Top-right
+        -6.36,  0.0, -2.42,  // Bottom-right
+         0.0,  0.0, -2.42,  // Bottom-left
+         0.0,  0.0, 0.0   // Closing the rectangle by connecting back to the top-left
+    ]);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    const material = new THREE.LineBasicMaterial({ color });
+    const rectangleOutline = new THREE.Line(geometry, material);
+    rectangleOutline.position.set(position.x, position.y, position.z);
+    this.scene.add(rectangleOutline);
+  }
+
+  createContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number): void {
+    let model: THREE.Mesh | null = null;
+    if (accessibility == 1) {
+      model = this.loadedModels[1].clone();
+    } else if (accessibility == 2) {
+      model = this.loadedModels[2].clone();
+    }
+
+    if (model) {
+      const { x, y, z } = position;
+      model.position.set(y * 6.75, z * 2.9, x * 2.75);
+      model.userData['containerData'] = { location: position, size, occupation: this.terminalData[x][y][z].occupation, accessibility };
+
+      this.scene.add(model);
+      this.containerMeshes.push(model);
+      this.terminalData[x][y][z].size = size;
+      this.terminalData[x][y][z].accessibility = accessibility;
+      this.terminalData[x][y][z].mesh = model;
+    } else {
+      console.log("no model")
+    }
+  }
+
+  addContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number): void {
+    if (this.locationService.checkCreateLocation(this.terminalData, position, size, accessibility)) {
+      // Ensure models are loaded before adding the container
+      if (!this.loadedModels[1] || !this.loadedModels[2]) {
+        this.loadModels().then(models => {
+          this.loadedModels = models;
+          this.createContainer(position, size, accessibility);
+        }).catch(error => {
+          console.error('Failed to load models:', error);
+        });
+      } else {
+        this.createContainer(position, size, accessibility);
+      }
+    } else {
+      console.warn('Invalid location for the container:', position);
+    }
+  }
+  
+
+  setOccupation(position: { x: number, y: number, z: number }, occupation: string): void {
+    this.terminalData[position.x][position.y][position.z].occupation = occupation;
+    this.terminalData[position.x][position.y][position.z].mesh.userData['containerData'].occupation = occupation;
+  }
+
 
   moveContainer(position: { x: number, y: number, z: number }) {
     const x = this.currentPosition.x;
     const y = this.currentPosition.y;
     const z = this.currentPosition.z;
+    if(x != null && y != null && z != null){
+      console.log("move")
+      if (this.terminalData[x][y][z]?.mesh) {
+          const x2 = position.x;
+          const y2 = position.y;
+          const z2 = position.z;
 
-    if (this.terminalData[x][y][z]?.mesh) {
-        const x2 = position.x;
-        const y2 = position.y;
-        const z2 = position.z;
+          if (this.locationService.checkLocation(this.terminalData, { x, y, z }, { x: x2, y: y2, z: z2 }, this.terminalData[x][y][z].size, this.terminalData[x][y][z].accessibility)) {
+              console.log("allowed")
+              // Update mesh position
+              this.terminalData[x][y][z].mesh.position.set(y2 * 6.75, z2 * 2.9, x2 * 2.75);
+              this.terminalData[x][y][z].mesh.userData['containerData'].location = { x: x2, y: y2, z: z2 };
 
-        if (this.locationService.checkLocation(this.terminalData, { x, y, z }, { x: x2, y: y2, z: z2 }, this.terminalData[x][y][z].size, this.terminalData[x][y][z].accessibility)) {
-            console.log("allowed")
-            // Update mesh position
-            this.terminalData[x][y][z].mesh.position.set(y2 * 6.75, z2 * 2.9, x2 * 2.75);
-            this.terminalData[x][y][z].mesh.userData['containerData'].location = { x: x2, y: y2, z: z2 };
+              // Transfer data to the new location
+              this.terminalData[x2][y2][z2] = {
+                  ...this.terminalData[x2][y2][z2],
+                  occupation: this.terminalData[x][y][z].occupation,
+                  size: this.terminalData[x][y][z].size,
+                  mesh: this.terminalData[x][y][z].mesh,
+              };
 
-            // Transfer data to the new location
-            this.terminalData[x2][y2][z2] = {
-                ...this.terminalData[x2][y2][z2],
-                occupation: this.terminalData[x][y][z].occupation,
-                size: this.terminalData[x][y][z].size,
-                mesh: this.terminalData[x][y][z].mesh,
-            };
+              // Clear data from the old location
+              this.terminalData[x][y][z] = {
+                  ...this.terminalData[x][y][z],
+                  occupation: null,
+                  size: null,
+                  mesh: undefined,
+              };
 
-            // Clear data from the old location
-            this.terminalData[x][y][z] = {
-                ...this.terminalData[x][y][z],
-                occupation: null,
-                size: null,
-                mesh: undefined,
-            };
-
-            this.storageFormService.setPosition({x: x2, y: y2, z:z2});
-        }
+              this.storageFormService.setPosition({x: x2, y: y2, z:z2});
+          }
+      }
     }
+  }
 
-}
-
-
+  getTerminal3dArrayData() {
+    // Deep copy the terminalDataOriginal
+    const terminalDataCopy = JSON.parse(JSON.stringify(this.terminalData));
+  
+    // Function to remove .mesh property
+    const removeMeshProperty = (data: any) => {
+      for (let x = 0; x < data.length; x++) {
+        for (let y = 0; y < data[x].length; y++) {
+          for (let z = 0; z < data[x][y].length; z++) {
+            if (data[x][y][z].mesh) {
+              delete data[x][y][z].mesh;
+            }
+          }
+        }
+      }
+    };
+  
+    // Remove .mesh property from the copied data
+    removeMeshProperty(terminalDataCopy);
+  
+    console.log(terminalDataCopy);
+    return terminalDataCopy;
+  }
 }

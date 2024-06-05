@@ -5,6 +5,7 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 
 import { StorageService } from '../../../../shared/services/api/storage.service';
 import { ContainerService } from '../../../../shared/services/api/container.service';
+import { TerminalService } from '../../../../shared/services/api/terminal.service';
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
 import { ValidatorsServiceService } from '../../../authentication/services/validators.service.service';
 import { StorageFormService } from '../../services/storage-form.service';
@@ -27,6 +28,7 @@ export class StorageFormComponent implements OnInit{
   @ViewChild(StorageThreeDComponent) storageThreeD!: StorageThreeDComponent;
   validatorService = inject(ValidatorsServiceService);
   containerService = inject(ContainerService);
+  terminalService = inject(TerminalService);
   storageService = inject(StorageService);
   dashboardService = inject(DashboardService);
   pageStorage = inject(PageStorageComponent);
@@ -35,6 +37,8 @@ export class StorageFormComponent implements OnInit{
   storageData: any;
   singleStorageData: any;
 
+  storageDataToUpdate: any;
+
   formSubmitted: boolean = false;
   storageForm!: FormGroup;
   containerForm!: FormGroup;
@@ -42,7 +46,7 @@ export class StorageFormComponent implements OnInit{
   isEditMode: boolean = false;
   toggleInput: boolean = false;
 
-  currentPosition!: { x: number, y: number, z: number };
+  currentPosition!: { x: number | null, y: number | null, z: number | null };
 
 
   ngOnInit(): void {
@@ -58,9 +62,9 @@ export class StorageFormComponent implements OnInit{
 
     this.containerForm = this.fb.group({
       containerNumber: ['', Validators.required],
-      size: ['', [Validators.required, this.validatorService.allowedSizesValidator(['0','1','2'])]],
+      size: [null, [Validators.required, this.validatorService.allowedSizesValidator([0, 1, 2])]],
       contents: ['', Validators.required],
-      storageType: ['', [Validators.required, this.validatorService.allowedStorageTypesValidator(['1','2'])]],
+      storageType: [null, [Validators.required, this.validatorService.allowedStorageTypesValidator([1,2])]],
       weight: ['', Validators.required],
     });
     
@@ -92,6 +96,9 @@ export class StorageFormComponent implements OnInit{
             this.pageStorage.openErrorModal(err.error.message);
           }
         });
+      } else {
+        // if we went into edit and chose a container to move it set the current position and then if we go into create and we check it its not null
+        this.storageFormService.setPosition({x: null, y: null, z: null}); 
       }
     });
   }
@@ -103,17 +110,22 @@ export class StorageFormComponent implements OnInit{
       if(storage._id == id) {
         const formattedData = {
           ...storage,
-          currentlyStoredAtX: storage.currentlyStoredAt.x,
-          currentlyStoredAtY: storage.currentlyStoredAt.y,
-          currentlyStoredAtZ: storage.currentlyStoredAt.z,
+          currentlyStoredAtX: storage.currentlyStoredAt?.x,
+          currentlyStoredAtY: storage.currentlyStoredAt?.y,
+          currentlyStoredAtZ: storage.currentlyStoredAt?.z,
           dateImported: this.formatDate(storage.dateImported),
           dateExported: this.formatDate(storage.dateExported),
           dateScheduledForExport: this.formatDate(storage.dateScheduledForExport)
         }
         this.storageForm.patchValue(formattedData);
+        const containerData = {
+          ...storage.containerId[0],
+          size: storage.containerId[0].size?.toString() || '',
+          storageType: storage.containerId[0].storageType?.toString() || ''
+        };
         this.containerForm.patchValue(storage.containerId[0]);
         this.singleStorageData = storage;
-        this.updatePosition(storage.currentlyStoredAt);
+        this.updatePosition(storage.currentlyStoredAt ? storage.currentlyStoredAt : {x: null, y:null, z:null});
       }
     });
   }
@@ -136,7 +148,7 @@ export class StorageFormComponent implements OnInit{
 
   onSubmit(): void {
     this.formSubmitted = true;
-
+    // push containerObj,this.singleStorageData.containerId[0]._id
     const containerObj = {
       containerNumber: this.containerForm.value.containerNumber,
       size: this.containerForm.value.size,
@@ -144,11 +156,16 @@ export class StorageFormComponent implements OnInit{
       storageType: this.containerForm.value.storageType,
       weight: this.containerForm.value.weight
     }
+    let terminalObj = {
+      _id: this.dashboardService.getSelectedTerminalMenu().id,
+      array3D: this.storageThreeD.getTerminal3dArrayData()
+    }
     if(this.containerForm.valid && this.storageForm.valid) {
       if(this.isEditMode){
         this.containerService.updateContainer(containerObj,this.singleStorageData.containerId[0]._id).subscribe({
           next:(res)=>{
             console.log(res);
+            // push storageObj, this.singleStorageData._id
             const storageObj = {
               containerId: this.singleStorageData.containerId[0]._id,
               terminalId: this.singleStorageData.terminalId[0]._id,
@@ -159,6 +176,14 @@ export class StorageFormComponent implements OnInit{
             this.storageService.updateStorageRecord(storageObj, this.singleStorageData._id).subscribe({
               next:(res)=>{
                 console.log(res);
+                this.terminalService.updateTerminal(terminalObj).subscribe({
+                  next:(res)=>{
+                    console.log(res);
+                  },
+                  error:(err)=>{
+                    console.log(err);
+                  }
+                })
               },
               error:(err)=>{
                 console.log(err);
@@ -183,12 +208,22 @@ export class StorageFormComponent implements OnInit{
                 containerId: match[1],
                 terminalId: this.dashboardService.getSelectedTerminalMenu().id,
                 dateImported: this.storageForm.value.dateImported,
-                currentlyStoredAt: this.storageForm.value.currentlyStoredAt,
+                currentlyStoredAt: {x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ},
                 dateScheduledForExport: this.storageForm.value.dateScheduledForExport
               }
               this.storageService.createStorageRecord(storageObj).subscribe({
                 next:(res)=>{
                   console.log(res)
+                  const match = res.message.match(/ID:([a-zA-Z0-9]+)/);
+                  this.storageThreeD.setOccupation({x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ}, match[1]);
+                  this.terminalService.updateTerminal(terminalObj).subscribe({
+                    next:(res)=>{
+                      console.log(res);
+                    },
+                    error:(err)=>{
+                      console.log(err);
+                    }
+                  })
                 },
                 error:(err)=>{
                   console.log(err)
@@ -204,6 +239,7 @@ export class StorageFormComponent implements OnInit{
           }
         });
       }
+      
     }
   }
 
@@ -213,6 +249,23 @@ export class StorageFormComponent implements OnInit{
 
   changeStorageData(id: string): void {
     console.log(id)
+    const containerObj = {
+      containerNumber: this.containerForm.value.containerNumber,
+      size: this.containerForm.value.size,
+      contents: this.containerForm.value.contents,
+      storageType: this.containerForm.value.storageType,
+      weight: this.containerForm.value.weight
+    }
+    const container = {obj: containerObj, id: this.singleStorageData.containerId[0]._id}
+    const storageObj = {
+      containerId: this.singleStorageData.containerId[0]._id,
+      terminalId: this.singleStorageData.terminalId[0]._id,
+      dateImported: this.storageForm.value.dateImported,
+      currentlyStoredAt: {x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ},
+      dateScheduledForExport: this.storageForm.value.dateScheduledForExport
+    }
+    const storage = {obj: storageObj, id: this.singleStorageData._id}
+    // this.storageDataToUpdate.push("W")
     this.loadStorageData(id);
     this.changeUrlId(id);
   }
@@ -232,7 +285,13 @@ export class StorageFormComponent implements OnInit{
 
   checkPosition() {
     if(this.storageForm.value.currentlyStoredAtX != null && this.storageForm.value.currentlyStoredAtY != null && this.storageForm.value.currentlyStoredAtZ != null){
-      this.storageThreeD.moveContainer({x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ});      
+      console.log(this.currentPosition)
+      if(this.currentPosition.x == null || this.currentPosition.y == null || this.currentPosition.z == null){
+        this.storageThreeD.addContainer({x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ}, this.containerForm.value.size, this.containerForm.value.storageType); // Check if its possible to place if it is set it there update currentPosition
+      }else{
+        this.storageThreeD.moveContainer({x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ});      
+      }
+
     }
   }
 
