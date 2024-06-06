@@ -20,11 +20,11 @@ import { StorageThreeDComponent } from '../storage-three-d/storage-three-d.compo
   templateUrl: './storage-form.component.html',
   styleUrl: './storage-form.component.css'
 })
-export class StorageFormComponent implements OnInit{
+export class StorageFormComponent implements OnInit {
   fb = inject(FormBuilder);
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
-  
+
   @ViewChild(StorageThreeDComponent) storageThreeD!: StorageThreeDComponent;
   validatorService = inject(ValidatorsServiceService);
   containerService = inject(ContainerService);
@@ -37,7 +37,7 @@ export class StorageFormComponent implements OnInit{
   storageData: any;
   singleStorageData: any;
 
-  storageDataToUpdate: any;
+  storageDataToUpdate: { container: any, containerId: string, storage: any, storageId: string }[] = [];
 
   formSubmitted: boolean = false;
   storageForm!: FormGroup;
@@ -48,11 +48,12 @@ export class StorageFormComponent implements OnInit{
 
   currentPosition!: { x: number | null, y: number | null, z: number | null };
 
-
   ngOnInit(): void {
-    console.log("new")
+    console.log("Initializing StorageFormComponent");
+
+    // Initialize the storage form with default values and validators
     this.storageForm = this.fb.group({
-      dateImported: [new Date().toISOString().slice(0,16), Validators.required],
+      dateImported: [new Date().toISOString().slice(0, 16), Validators.required],
       dateExported: [''],
       currentlyStoredAtX: [''],
       currentlyStoredAtY: [''],
@@ -60,54 +61,64 @@ export class StorageFormComponent implements OnInit{
       dateScheduledForExport: [''],
     });
 
+    // Initialize the container form with default values and validators
     this.containerForm = this.fb.group({
       containerNumber: ['', Validators.required],
       size: [null, [Validators.required, this.validatorService.allowedSizesValidator([0, 1, 2])]],
       contents: ['', Validators.required],
-      storageType: [null, [Validators.required, this.validatorService.allowedStorageTypesValidator([1,2])]],
+      storageType: [null, [Validators.required, this.validatorService.allowedStorageTypesValidator([1, 2])]],
       weight: ['', Validators.required],
     });
-    
+
+    // Subscribe to position updates from the storage form service
     this.storageFormService.position$.subscribe(val => this.currentPosition = val);
 
+    // Subscribe to route parameter changes to detect if we are in edit mode
     this.activatedRoute.paramMap.subscribe(params => {
       this.storageId = params.get('storageId');
       if (this.storageId) {
         this.isEditMode = true;
-        this.dashboardService.getSelectedTerminal().subscribe({
-          next: (selectedTerminal) => {
-            if (selectedTerminal && selectedTerminal.id) {
-              this.storageService.getTerminalStorageRecords(selectedTerminal.id).subscribe({
-                next: (res) => {
-                  console.log(res);
-                  this.storageData = res.data;
-                  if (this.storageId) 
-                    this.loadStorageData(this.storageId);
-                },
-                error: (err) => {
-                  console.log(err);
-                  this.pageStorage.openErrorModal(err.error.message);
-                }
-              });
-            }
-          },
-          error: (err) => {
-            console.log(err);
-            this.pageStorage.openErrorModal(err.error.message);
-          }
-        });
+        this.loadEditModeData();
       } else {
-        // if we went into edit and chose a container to move it set the current position and then if we go into create and we check it its not null
-        this.storageFormService.setPosition({x: null, y: null, z: null}); 
+        // Reset the current position if not in edit mode
+        this.storageFormService.setPosition({ x: null, y: null, z: null });
       }
     });
   }
 
+  // Load data when in edit mode
+  loadEditModeData(): void {
+    this.dashboardService.getSelectedTerminal().subscribe({
+      next: (selectedTerminal) => {
+        if (selectedTerminal && selectedTerminal.id) {
+          this.storageService.getTerminalStorageRecords(selectedTerminal.id).subscribe({
+            next: (res) => {
+              console.log(res);
+              this.storageData = res.data;
+              if (this.storageId) {
+                this.loadStorageData(this.storageId);
+              }
+            },
+            error: (err) => {
+              console.log(err);
+              this.pageStorage.openErrorModal(err.error.message);
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.log(err);
+        this.pageStorage.openErrorModal(err.error.message);
+      }
+    });
+  }
+
+  // Load storage data by ID
   loadStorageData(id: string): void {
     this.storageForm.reset();
     this.containerForm.reset();
     this.storageData.forEach((storage: any) => {
-      if(storage._id == id) {
+      if (storage._id == id) {
         const formattedData = {
           ...storage,
           currentlyStoredAtX: storage.currentlyStoredAt?.x,
@@ -118,18 +129,14 @@ export class StorageFormComponent implements OnInit{
           dateScheduledForExport: this.formatDate(storage.dateScheduledForExport)
         }
         this.storageForm.patchValue(formattedData);
-        const containerData = {
-          ...storage.containerId[0],
-          size: storage.containerId[0].size?.toString() || '',
-          storageType: storage.containerId[0].storageType?.toString() || ''
-        };
         this.containerForm.patchValue(storage.containerId[0]);
         this.singleStorageData = storage;
-        this.updatePosition(storage.currentlyStoredAt ? storage.currentlyStoredAt : {x: null, y:null, z:null});
+        this.updatePosition(storage.currentlyStoredAt ? storage.currentlyStoredAt : { x: null, y: null, z: null });
       }
     });
   }
 
+  // Format date to ISO string format
   formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -138,138 +145,164 @@ export class StorageFormComponent implements OnInit{
     const day = ('0' + date.getDate()).slice(-2); // Adding leading zero
     const hours = ('0' + date.getHours()).slice(-2); // Adding leading zero
     const minutes = ('0' + date.getMinutes()).slice(-2); // Adding leading zero
-  
+
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
+  // Toggle the input form
   toggleInputForm() {
     this.toggleInput = !this.toggleInput
   }
 
+  // Handle form submission
   onSubmit(): void {
     this.formSubmitted = true;
-    // push containerObj,this.singleStorageData.containerId[0]._id
-    const containerObj = {
-      containerNumber: this.containerForm.value.containerNumber,
-      size: this.containerForm.value.size,
-      contents: this.containerForm.value.contents,
-      storageType: this.containerForm.value.storageType,
-      weight: this.containerForm.value.weight
-    }
-    let terminalObj = {
-      _id: this.dashboardService.getSelectedTerminalMenu().id,
-      array3D: this.storageThreeD.getTerminal3dArrayData()
-    }
-    if(this.containerForm.valid && this.storageForm.valid) {
-      if(this.isEditMode){
-        this.containerService.updateContainer(containerObj,this.singleStorageData.containerId[0]._id).subscribe({
-          next:(res)=>{
-            console.log(res);
-            // push storageObj, this.singleStorageData._id
-            const storageObj = {
-              containerId: this.singleStorageData.containerId[0]._id,
-              terminalId: this.singleStorageData.terminalId[0]._id,
-              dateImported: this.storageForm.value.dateImported,
-              currentlyStoredAt: {x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ},
-              dateScheduledForExport: this.storageForm.value.dateScheduledForExport
-            }
-            this.storageService.updateStorageRecord(storageObj, this.singleStorageData._id).subscribe({
-              next:(res)=>{
-                console.log(res);
-                this.terminalService.updateTerminal(terminalObj).subscribe({
-                  next:(res)=>{
-                    console.log(res);
-                  },
-                  error:(err)=>{
-                    console.log(err);
-                  }
-                })
-              },
-              error:(err)=>{
-                console.log(err);
-                this.pageStorage.openErrorModal(err.error.message);
-              }
-            })
-          }, 
-          error:(err)=>{
-            console.log(err);
-            this.pageStorage.openErrorModal(err.error.message);
-          }
-        })
 
+    if (this.containerForm.valid && this.storageForm.valid) {
+      if (this.isEditMode) {
+        // Process all updates in edit mode
+        this.saveStorageData();
+        this.updateMode();
       } else {
-        this.containerService.addContainer(containerObj).subscribe({
-          next:(res)=>{
-            console.log(res)
-            const match = res.message.match(/ID:([a-zA-Z0-9]+)/);
+        // Create new records in create mode
+        this.createMode();
+      }
+    }
+  }
 
-            if (match) {
-              const storageObj = {
-                containerId: match[1],
-                terminalId: this.dashboardService.getSelectedTerminalMenu().id,
-                dateImported: this.storageForm.value.dateImported,
-                currentlyStoredAt: {x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ},
-                dateScheduledForExport: this.storageForm.value.dateScheduledForExport
-              }
-              this.storageService.createStorageRecord(storageObj).subscribe({
-                next:(res)=>{
-                  console.log(res)
-                  const match = res.message.match(/ID:([a-zA-Z0-9]+)/);
-                  this.storageThreeD.setOccupation({x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ}, match[1]);
-                  this.terminalService.updateTerminal(terminalObj).subscribe({
-                    next:(res)=>{
-                      console.log(res);
-                    },
-                    error:(err)=>{
-                      console.log(err);
-                    }
-                  })
+  // Update all data in edit mode
+  updateMode() {
+    this.storageDataToUpdate.forEach(data => {
+      this.containerService.updateContainer(data.container, data.containerId).subscribe({
+        next: (res) => {
+          console.log(res);
+          this.storageService.updateStorageRecord(data.storage, data.storageId).subscribe({
+            next: (res) => {
+              console.log(res);
+              const terminalObj = {
+                _id: this.dashboardService.getSelectedTerminalMenu().id,
+                array3D: this.storageThreeD.getTerminal3dArrayData()
+              };
+              this.terminalService.updateTerminal(terminalObj).subscribe({
+                next: (res) => {
+                  console.log(res);
                 },
-                error:(err)=>{
-                  console.log(err)
-                  this.pageStorage.openErrorModal(err.error.message);
+                error: (err) => {
+                  console.log(err);
                 }
               });
+            },
+            error: (err) => {
+              console.log(err);
+              this.pageStorage.openErrorModal(err.error.message);
             }
-
-          },
-          error:(err)=>{
-            console.log(err);
-            this.pageStorage.openErrorModal(err.error.message);
-          }
-        });
-      }
-      
-    }
+          });
+        },
+        error: (err) => {
+          console.log(err);
+          this.pageStorage.openErrorModal(err.error.message);
+        }
+      });
+    });
   }
 
-  delete() {
-
-  }
-
-  changeStorageData(id: string): void {
-    console.log(id)
+  // Create new records in create mode
+  createMode() {
     const containerObj = {
       containerNumber: this.containerForm.value.containerNumber,
       size: this.containerForm.value.size,
       contents: this.containerForm.value.contents,
       storageType: this.containerForm.value.storageType,
       weight: this.containerForm.value.weight
+    };
+
+    this.containerService.addContainer(containerObj).subscribe({
+      next: (res) => {
+        console.log(res);
+        const match = res.message.match(/ID:([a-zA-Z0-9]+)/);
+        if (match) {
+          const storageObj = {
+            containerId: match[1],
+            terminalId: this.dashboardService.getSelectedTerminalMenu().id,
+            dateImported: this.storageForm.value.dateImported,
+            currentlyStoredAt: { x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ },
+            dateScheduledForExport: this.storageForm.value.dateScheduledForExport
+          };
+          this.storageService.createStorageRecord(storageObj).subscribe({
+            next: (res) => {
+              console.log(res);
+              const match = res.message.match(/ID:([a-zA-Z0-9]+)/);
+              this.storageThreeD.setOccupation({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ }, match[1]);
+              const terminalObj = {
+                _id: this.dashboardService.getSelectedTerminalMenu().id,
+                array3D: this.storageThreeD.getTerminal3dArrayData()
+              };
+              this.terminalService.updateTerminal(terminalObj).subscribe({
+                next: (res) => {
+                  console.log(res);
+                },
+                error: (err) => {
+                  console.log(err);
+                }
+              });
+            },
+            error: (err) => {
+              console.log(err);
+              this.pageStorage.openErrorModal(err.error.message);
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.log(err);
+        this.pageStorage.openErrorModal(err.error.message);
+      }
+    });
+  }
+
+  // Placeholder function for delete operation
+  delete() {
+    // Implement delete functionality if needed
+  }
+
+  // Handle changing storage data
+  changeStorageData(id: string): void {
+    console.log(id)
+    if (this.containerForm.valid && this.storageForm.valid) {
+      this.saveStorageData();
+      this.loadStorageData(id);
+      this.changeUrlId(id);
+    } else {
+      this.pageStorage.openErrorModal("Fill in the form correctly.");
     }
-    const container = {obj: containerObj, id: this.singleStorageData.containerId[0]._id}
+  }
+
+  // Save current storage data to the update queue
+  saveStorageData() {
+    const containerObj = {
+      containerNumber: this.containerForm.value.containerNumber,
+      size: this.containerForm.value.size,
+      contents: this.containerForm.value.contents,
+      storageType: this.containerForm.value.storageType,
+      weight: this.containerForm.value.weight
+    };
     const storageObj = {
       containerId: this.singleStorageData.containerId[0]._id,
       terminalId: this.singleStorageData.terminalId[0]._id,
       dateImported: this.storageForm.value.dateImported,
-      currentlyStoredAt: {x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ},
+      currentlyStoredAt: { x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ },
       dateScheduledForExport: this.storageForm.value.dateScheduledForExport
-    }
-    const storage = {obj: storageObj, id: this.singleStorageData._id}
-    // this.storageDataToUpdate.push("W")
-    this.loadStorageData(id);
-    this.changeUrlId(id);
+    };
+
+    this.storageDataToUpdate.push({
+      container: containerObj,
+      containerId: this.singleStorageData.containerId[0]._id,
+      storage: storageObj,
+      storageId: this.singleStorageData._id
+    });
   }
 
+  // Change the URL to reflect the new storage ID without triggering a reload
   changeUrlId(newId: string) {
     this.router.navigate(['../', newId], {
       relativeTo: this.activatedRoute,
@@ -278,21 +311,21 @@ export class StorageFormComponent implements OnInit{
     });
   }
 
+  // Update the current position and check the validity of the position
   updatePosition(newValue: { x: number, y: number, z: number }) {
     this.storageFormService.setPosition(newValue);
     this.checkPosition();
   }
 
+  // Check if the current position is valid and update the 3D storage view accordingly
   checkPosition() {
-    if(this.storageForm.value.currentlyStoredAtX != null && this.storageForm.value.currentlyStoredAtY != null && this.storageForm.value.currentlyStoredAtZ != null){
+    if (this.storageForm.value.currentlyStoredAtX != null && this.storageForm.value.currentlyStoredAtY != null && this.storageForm.value.currentlyStoredAtZ != null) {
       console.log(this.currentPosition)
-      if(this.currentPosition.x == null || this.currentPosition.y == null || this.currentPosition.z == null){
-        this.storageThreeD.addContainer({x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ}, this.containerForm.value.size, this.containerForm.value.storageType); // Check if its possible to place if it is set it there update currentPosition
-      }else{
-        this.storageThreeD.moveContainer({x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ});      
+      if (this.currentPosition.x == null || this.currentPosition.y == null || this.currentPosition.z == null) {
+        this.storageThreeD.addContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ }, this.containerForm.value.size, this.containerForm.value.storageType); // Check if it's possible to place if it is set it there update currentPosition
+      } else {
+        this.storageThreeD.moveContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ });
       }
-
     }
   }
-
 }

@@ -49,8 +49,9 @@ export class StorageThreeDComponent implements AfterViewInit {
   private containerMeshes: THREE.Mesh[] = [];
 
   private modelUrls = {
-    1: "../../../../assets/3js/containers/6m_yellow.glb",
-    2: "../../../../assets/3js/containers/6m_green.glb"
+    0: ['../../../../assets/3js/containers/3m_yellow.glb', '../../../../assets/3js/containers/3m_green.glb'],
+    1: ['../../../../assets/3js/containers/6m_yellow.glb', '../../../../assets/3js/containers/6m_green.glb', '../../../../assets/3js/containers/6m_red.glb', '../../../../assets/3js/containers/6m_white.glb'],
+    2: ['../../../../assets/3js/containers/12m_yellow.glb', '../../../../assets/3js/containers/12m_green.glb', '../../../../assets/3js/containers/12m_blue.glb', '../../../../assets/3js/containers/12m_dark_red.glb', '../../../../assets/3js/containers/12m_white.glb', '../../../../assets/3js/containers/12m_red.glb']
   };
 
   private loadedModels: { [key: number]: THREE.Mesh } = {};
