@@ -5,61 +5,88 @@ import { Injectable } from '@angular/core';
 })
 export class LocationService {
 
-  checkLocation(storageData: any, currentLocation: any, location: any, size: number, accessibility: number) {
-    // Ensure the target location exists and has the same accessibility
-    if (storageData[location.x] && storageData[location.x][location.y] && storageData[location.x][location.y][location.z]) {
-      // console.log("exists")
-      // Check if no other container is occuping space
-      if (storageData[location.x][location.y][location.z].occupation == null){
-        // console.log("not occupied")
-        // Check if the space accesibility is the same
-        if (storageData[location.x][location.y][location.z].accessibility == accessibility) {
-          // console.log("accessibility is ok")
-          // Check if the target location is on the ground level or if the location below is suitable -> same size
-          if (location.z == 0 || (storageData[location.x][location.y][location.z - 1]?.size >= size ) ) {
-            // console.log("ground or size ok")
-            // if its 12m the occupation cant have :2 at the end of the id
-            if(size != 2 || storageData[location.x][location.y][location.z - 1].occupation?.slice(-2, -1) === ':'){
-              // console.log("12m ok")
-              // Check if we put it on top of itself
-              if(currentLocation.x != location.x || currentLocation.y != location.y){
-                // console.log("not on top")
-                return true;
-              }
-            }
-          }
-        }
-      }
+  checkLocation(storageData: any, currentLocation: any, location: any, size: number, accessibility: number): boolean {
+    const { x, y, z } = location;
+  
+    // Ensure the target location exists
+    if (!storageData[x] || !storageData[x][y] || !storageData[x][y][z]) {
+      return false;
+    }
+    
+    const targetCell = storageData[x][y][z];
+  
+    // Check if the target location is unoccupied and has the correct accessibility
+    if (targetCell.occupation != null || targetCell.accessibility != accessibility) {
+      return false;
     }
 
-    return false;
-  }
-
-  checkCreateLocation(storageData: any, location: any, size: number, accessibility: number) {
-    // Ensure the target location exists and has the same accessibility
-    if (storageData[location.x] && storageData[location.x][location.y] && storageData[location.x][location.y][location.z]) {
-      console.log("exists")
-      // Check if no other container is occuping space
-      if (storageData[location.x][location.y][location.z].occupation == null){
-        console.log("not occupied")
-        // Check if the space accesibility is the same
-        if (storageData[location.x][location.y][location.z].accessibility == accessibility) {
-          console.log("accessibility is ok")
-          // Check if the target location is on the ground level or if the location below is suitable -> same size
-          if (location.z == 0 || (storageData[location.x][location.y][location.z - 1]?.size >= size ) ) {
-            console.log("ground or size ok")
-            // if its 12m the occupation cant have :2 at the end of the id
-            if(size != 2 || storageData[location.x][location.y][location.z - 1].occupation?.slice(-2, -1) === ':'){
-              console.log("12m ok")            
-              return true;
-            }
-          }
-        }
-      }
+    // Check if the target location is on the ground level or if the location below is suitable
+    if (z != 0 && (!storageData[x][y][z - 1] || storageData[x][y][z - 1].size < size)) {
+      return false;
     }
 
-    return false;
-  }
+    // Additional checks for 12m containers (size == 2)
+    if (size == 2) {
+      const nextY = Number(y) + 1;
+      const nextCell = storageData[x][nextY] && storageData[x][nextY][z];
+  
+      if (!nextCell || nextCell.occupation != null || nextCell.accessibility != accessibility) {
+        return false;
+      }
 
+      // Check if the target location is on the ground level or on the first space of another 12m container
+      if (z != 0 && storageData[x][y][z-1].occupation != storageData[x][Number(y) + 1][z-1].occupation) {
+        return false;
+      }    
+
+    }
+  
+    // Check if we put it on top of itself
+    if (currentLocation.x === location.x && currentLocation.y === location.y) {
+      return false;
+    }
+
+    return true;
+  }
+  
+
+  checkCreateLocation(storageData: any, location: any, size: number, accessibility: number): boolean {
+    const { x, y, z } = location;
+  
+    // Ensure the target location exists
+    if (!storageData[x] || !storageData[x][y] || !storageData[x][y][z]) {
+      return false;
+    }
+    const targetCell = storageData[x][y][z];
+  
+    // Check if the target location is unoccupied and has the correct accessibility
+    if (targetCell.occupation != null || targetCell.accessibility != accessibility) {
+      return false;
+    }
+
+    // Check if the target location is on the ground level or if the location below is suitable
+    if (z != 0 && (!storageData[x][y][z - 1] || storageData[x][y][z - 1].size < size)) {
+      return false;
+    }
+
+    // Additional checks for 12m containers (size == 2)
+    if (size == 2) {
+      const nextCell = storageData[x][Number(y) + 1] && storageData[x][Number(y) + 1][z];
+
+      if (!nextCell || nextCell.occupation != null || nextCell.accessibility != accessibility) {
+        return false;
+      }
+
+      // Check if the target location is on the ground level or on the first space of another 12m container
+      if (z != 0 && storageData[x][y][z-1].occupation != storageData[x][Number(y) + 1][z-1].occupation) {
+        return false;
+      }
+
+    }
+  
+    console.log("Location is suitable");
+    return true;
+  }
+  
 
 }

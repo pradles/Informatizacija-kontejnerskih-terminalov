@@ -271,7 +271,7 @@ export class StorageFormComponent implements OnInit {
     if (this.containerForm.valid && this.storageForm.valid) {
       this.saveStorageData();
       this.loadStorageData(id);
-      this.changeUrlId(id);
+      // this.changeUrlId(id);
     } else {
       this.pageStorage.openErrorModal("Fill in the form correctly.");
     }
@@ -320,7 +320,6 @@ export class StorageFormComponent implements OnInit {
   // Check if the current position is valid and update the 3D storage view accordingly
   checkPosition() {
     if (this.storageForm.value.currentlyStoredAtX != null && this.storageForm.value.currentlyStoredAtY != null && this.storageForm.value.currentlyStoredAtZ != null) {
-      console.log(this.currentPosition)
       if (this.currentPosition.x == null || this.currentPosition.y == null || this.currentPosition.z == null) {
         this.storageThreeD.addContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ }, this.containerForm.value.size, this.containerForm.value.storageType); // Check if it's possible to place if it is set it there update currentPosition
       } else {
