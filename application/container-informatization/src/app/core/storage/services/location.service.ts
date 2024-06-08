@@ -12,32 +12,36 @@ export class LocationService {
     if (!storageData[x] || !storageData[x][y] || !storageData[x][y][z]) {
       return false;
     }
-    
+    console.log("1")
     const targetCell = storageData[x][y][z];
   
     // Check if the target location is unoccupied and has the correct accessibility
-    if (targetCell.occupation != null || targetCell.accessibility != accessibility) {
+    if ((targetCell.occupation != null && targetCell.occupation != storageData[currentLocation.x][currentLocation.y][currentLocation.z].occupation) || targetCell.accessibility != accessibility) {
       return false;
     }
+    console.log("2")
 
     // Check if the target location is on the ground level or if the location below is suitable
     if (z != 0 && (!storageData[x][y][z - 1] || storageData[x][y][z - 1].size < size)) {
       return false;
     }
+    console.log("3")
 
     // Additional checks for 12m containers (size == 2)
     if (size == 2) {
       const nextY = Number(y) + 1;
       const nextCell = storageData[x][nextY] && storageData[x][nextY][z];
   
-      if (!nextCell || nextCell.occupation != null || nextCell.accessibility != accessibility) {
+      if (!nextCell || (nextCell.occupation != null && nextCell.occupation != storageData[currentLocation.x][currentLocation.y][currentLocation.z].occupation) || nextCell.accessibility != accessibility) {
         return false;
       }
+      console.log("4")
 
       // Check if the target location is on the ground level or on the first space of another 12m container
       if (z != 0 && storageData[x][y][z-1].occupation != storageData[x][Number(y) + 1][z-1].occupation) {
         return false;
       }    
+      console.log("5")
 
     }
   
@@ -45,6 +49,7 @@ export class LocationService {
     if (currentLocation.x === location.x && currentLocation.y === location.y) {
       return false;
     }
+    console.log("6")
 
     return true;
   }

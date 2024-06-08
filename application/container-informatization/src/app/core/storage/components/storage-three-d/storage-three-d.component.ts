@@ -35,6 +35,8 @@ export class StorageThreeDComponent implements AfterViewInit {
   terminalData!: any;
   currentPosition!: { x: number | null, y: number | null, z: number | null };
 
+  selectedContainer!: THREE.Mesh;
+
   @ViewChild('rendererContainer', { static: true }) rendererContainer!: ElementRef;
   private stats = new Stats();
   private scene!: THREE.Scene;
@@ -225,7 +227,7 @@ export class StorageThreeDComponent implements AfterViewInit {
           const cell = this.terminalData[x][y][z];
           if (cell.occupation != null) { // MAYBE A BETTER CHECK BUT THIS ONE IS FINE
             if(cell.size != 2 || cell.occupation == this.terminalData[x][Number(y)+1][z].occupation)
-              this.createContainer({ x, y, z }, cell.size, cell.accessibility);
+              this.createContainer({ x, y, z }, cell.size, cell.accessibility, cell.occupation);
           }
         }
       }
@@ -251,9 +253,10 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.scene.add(rectangleOutline);
   }
 
-  createContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number): void {
+  createContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number, occupation: string): void {
     const modelsForSize = this.loadedModels[size];
     if (!modelsForSize || modelsForSize.length === 0) {
+      console.log(position)
       console.error(`No models found for size ${size}`);
       return;
     }
@@ -269,10 +272,12 @@ export class StorageThreeDComponent implements AfterViewInit {
   
       this.scene.add(model);
       this.containerMeshes.push(model);
+      this.terminalData[x][y][z].occupation = occupation;
       this.terminalData[x][y][z].size = size;
       this.terminalData[x][y][z].mesh = model;
 
       if(size == 2) {
+        this.terminalData[x][Number(y)+1][z].occupation = occupation;
         this.terminalData[x][Number(y)+1][z].size = size;
         this.terminalData[x][Number(y)+1][z].mesh = model;
       }
@@ -282,19 +287,19 @@ export class StorageThreeDComponent implements AfterViewInit {
     }
   }
 
-  addContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number): void {
+  addContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number, occupation: string): void {
     if (this.locationService.checkCreateLocation(this.terminalData, position, size, accessibility)) {
       // Ensure models are loaded before adding the container
       if (!this.loadedModels[1] || !this.loadedModels[2]) {
         this.loadModels().then(models => {
           this.loadedModels = models;
-          this.createContainer(position, size, accessibility);
+          this.createContainer(position, size, accessibility, occupation);
           this.storageFormService.setPosition({x: position.x, y: position.y, z: position.z});
         }).catch(error => {
           console.error('Failed to load models:', error);
         });
       } else {
-        this.createContainer(position, size, accessibility);
+        this.createContainer(position, size, accessibility, occupation);
         this.storageFormService.setPosition({x: position.x, y: position.y, z: position.z});
       }
     } else {

@@ -36,6 +36,11 @@ export class StorageFormComponent implements OnInit {
 
   storageData: any;
   singleStorageData: any;
+  // for dropdown
+  storageNumberId: { label: string, value: string }[] = [];
+  filteredStorageNumberId: { label: string, value: string }[] = [];
+  storageNumberIdDropdown: boolean = false;
+
 
   storageDataToUpdate: { container: any, containerId: string, storage: any, storageId: string }[] = [];
 
@@ -45,6 +50,7 @@ export class StorageFormComponent implements OnInit {
   storageId: string | null = null;
   isEditMode: boolean = false;
   toggleInput: boolean = false;
+  loading: boolean = false;
 
   currentPosition!: { x: number | null, y: number | null, z: number | null };
 
@@ -115,10 +121,12 @@ export class StorageFormComponent implements OnInit {
 
   // Load storage data by ID
   loadStorageData(id: string): void {
+    this.storageNumberId = [];
     this.storageForm.reset();
     this.containerForm.reset();
     this.storageData.forEach((storage: any) => {
       if (storage._id == id) {
+        this.singleStorageData = storage;
         const formattedData = {
           ...storage,
           currentlyStoredAtX: storage.currentlyStoredAt?.x,
@@ -130,10 +138,11 @@ export class StorageFormComponent implements OnInit {
         }
         this.storageForm.patchValue(formattedData);
         this.containerForm.patchValue(storage.containerId[0]);
-        this.singleStorageData = storage;
         this.updatePosition(storage.currentlyStoredAt ? storage.currentlyStoredAt : { x: null, y: null, z: null });
       }
+      this.storageNumberId.push({label: storage.containerId[0].containerNumber, value: storage._id})
     });
+    this.filteredStorageNumberId = this.storageNumberId;
   }
 
   // Format date to ISO string format
@@ -154,19 +163,48 @@ export class StorageFormComponent implements OnInit {
     this.toggleInput = !this.toggleInput
   }
 
+  onSearch(): void {
+    this.filteredStorageNumberId = this.storageNumberId.filter(item =>
+      item.label.toString().includes(this.containerForm.value.containerNumber.toLowerCase())
+    );
+  }
+
+  selectItem(item: { label: string, value: string }): void {
+    this.changeStorageData(item.value);
+    console.log(item);
+  }
+
+  onFocusDropdown(): void {
+    this.storageNumberIdDropdown = true;
+  }
+  onBlurDropdown(): void {
+    setTimeout(() => 
+      {
+        this.storageNumberIdDropdown = false;
+      },
+      120);
+  }
+
   // Handle form submission
   onSubmit(): void {
     this.formSubmitted = true;
 
     if (this.containerForm.valid && this.storageForm.valid) {
-      if (this.isEditMode) {
-        // Process all updates in edit mode
-        this.saveStorageData();
-        this.updateMode();
+      if (this.storageForm.value.currentlyStoredAtX == this.currentPosition.x && this.storageForm.value.currentlyStoredAtY == this.currentPosition.y && this.storageForm.value.currentlyStoredAtZ == this.currentPosition.z) {
+        this.loading = true;
+        if (this.isEditMode) {
+          // Process all updates in edit mode
+          this.saveStorageData();
+          this.updateMode();
+        } else {
+          // Create new records in create mode
+          this.createMode();
+        }
       } else {
-        // Create new records in create mode
-        this.createMode();
+        this.pageStorage.openErrorModal("Current position is not correct.");
       }
+    } else {
+      this.pageStorage.openErrorModal("Fill in the form correctly.");
     }
   }
 
@@ -186,9 +224,11 @@ export class StorageFormComponent implements OnInit {
               this.terminalService.updateTerminal(terminalObj).subscribe({
                 next: (res) => {
                   console.log(res);
+                  this.loading = false;
                 },
                 error: (err) => {
                   console.log(err);
+                  this.loading = false;
                 }
               });
             },
@@ -240,9 +280,11 @@ export class StorageFormComponent implements OnInit {
               this.terminalService.updateTerminal(terminalObj).subscribe({
                 next: (res) => {
                   console.log(res);
+                  this.loading = false;
                 },
                 error: (err) => {
                   console.log(err);
+                  this.loading = false;
                 }
               });
             },
@@ -269,9 +311,14 @@ export class StorageFormComponent implements OnInit {
   changeStorageData(id: string): void {
     console.log(id)
     if (this.containerForm.valid && this.storageForm.valid) {
-      this.saveStorageData();
-      this.loadStorageData(id);
-      // this.changeUrlId(id);
+      if (this.storageForm.value.currentlyStoredAtX == this.currentPosition.x && this.storageForm.value.currentlyStoredAtY == this.currentPosition.y && this.storageForm.value.currentlyStoredAtZ == this.currentPosition.z) {
+        this.saveStorageData();
+        this.loadStorageData(id);
+        // this.changeUrlId(id);
+      } else {
+        this.pageStorage.openErrorModal("Current position is not correct.");
+      }
+
     } else {
       this.pageStorage.openErrorModal("Fill in the form correctly.");
     }
@@ -321,7 +368,7 @@ export class StorageFormComponent implements OnInit {
   checkPosition() {
     if (this.storageForm.value.currentlyStoredAtX != null && this.storageForm.value.currentlyStoredAtY != null && this.storageForm.value.currentlyStoredAtZ != null) {
       if (this.currentPosition.x == null || this.currentPosition.y == null || this.currentPosition.z == null) {
-        this.storageThreeD.addContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ }, this.containerForm.value.size, this.containerForm.value.storageType); // Check if it's possible to place if it is set it there update currentPosition
+        this.storageThreeD.addContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ }, this.containerForm.value.size, this.containerForm.value.storageType, this.singleStorageData?._id); // Check if it's possible to place if it is set it there update currentPosition
       } else {
         this.storageThreeD.moveContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ });
       }
