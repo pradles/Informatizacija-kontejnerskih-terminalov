@@ -36,6 +36,8 @@ export class StorageThreeDComponent implements AfterViewInit {
   currentPosition!: { x: number | null, y: number | null, z: number | null };
 
   selectedContainer!: THREE.Mesh;
+  highlightedObjects: Set<THREE.Object3D> = new Set<THREE.Object3D>();
+
 
   @ViewChild('rendererContainer', { static: true }) rendererContainer!: ElementRef;
   private stats = new Stats();
@@ -161,11 +163,17 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(this.containerMeshes);
 
-    if (intersects.length > 0) {
-      this.outlinePass.selectedObjects = [intersects[0].object];
-    } else {
-      this.outlinePass.selectedObjects = []
+    // Clear previously highlighted objects except the selected one
+    this.highlightedObjects.clear();
+    if (this.selectedContainer) {
+      this.highlightedObjects.add(this.selectedContainer);
     }
+
+    if (intersects.length > 0) {
+      this.highlightedObjects.add(intersects[0].object);
+    }
+
+    this.outlinePass.selectedObjects = Array.from(this.highlightedObjects);
   }
 
   private onClick(event: MouseEvent): void {
@@ -184,6 +192,18 @@ export class StorageThreeDComponent implements AfterViewInit {
           this.storageForm.changeStorageData(intersectedObject.userData['containerData'].occupation)
       }
     }
+  }
+
+  setSelectedContainer() {
+    if (this.currentPosition.x != null && this.currentPosition.y != null && this.currentPosition.z != null)
+      this.selectedContainer = this.terminalData[this.currentPosition.x][this.currentPosition.y][this.currentPosition.z].mesh;
+
+    this.highlightedObjects.clear();
+
+    if (this.selectedContainer) {
+      this.highlightedObjects.add(this.selectedContainer);
+    }
+    this.outlinePass.selectedObjects = Array.from(this.highlightedObjects);
   }
 
   private loadModel(url: string): Promise<THREE.Mesh> {
@@ -232,6 +252,14 @@ export class StorageThreeDComponent implements AfterViewInit {
         }
       }
     }
+    const x = this.terminalData.length;
+    const y = this.terminalData[0].length;
+    const geometry = new THREE.PlaneGeometry( y*7,x*3 );
+    const material = new THREE.MeshBasicMaterial( {color: 0x9f9f9f, side: THREE.FrontSide} );
+    const plane = new THREE.Mesh( geometry, material );
+    plane.position.set(y/2*6.75-6.75,-0.1,x/2*2.75-2.75)
+    plane.rotateX(-Math.PI/2)
+    this.scene.add( plane );
   }
 
   createRectangleOutline(position: THREE.Vector3, value: number) {

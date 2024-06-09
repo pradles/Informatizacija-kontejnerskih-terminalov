@@ -314,6 +314,7 @@ export class StorageFormComponent implements OnInit {
       if (this.storageForm.value.currentlyStoredAtX == this.currentPosition.x && this.storageForm.value.currentlyStoredAtY == this.currentPosition.y && this.storageForm.value.currentlyStoredAtZ == this.currentPosition.z) {
         this.saveStorageData();
         this.loadStorageData(id);
+        this.storageThreeD.setSelectedContainer();
         // this.changeUrlId(id);
       } else {
         this.pageStorage.openErrorModal("Current position is not correct.");
