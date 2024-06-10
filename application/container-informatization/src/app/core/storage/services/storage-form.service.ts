@@ -20,5 +20,6 @@ export class StorageFormService {
 
   setPosition(newValue: Position) {
     this.positionSubject.next(newValue);
+    console.log("position set:"+newValue.x + " "+newValue.y+" "+newValue.z)
   }
 }

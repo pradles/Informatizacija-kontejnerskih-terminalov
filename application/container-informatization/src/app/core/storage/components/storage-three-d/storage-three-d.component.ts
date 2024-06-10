@@ -24,20 +24,24 @@ import { StorageFormComponent } from '../storage-form/storage-form.component';
   styleUrl: './storage-three-d.component.css'
 })
 export class StorageThreeDComponent implements AfterViewInit {
-  dashboardService = inject(DashboardService);
-  terminalService = inject(TerminalService);
-  storageFormService = inject(StorageFormService);
-  locationService = inject(LocationService);
+  private dashboardService = inject(DashboardService);
+  private terminalService = inject(TerminalService);
+  private storageFormService = inject(StorageFormService);
+  private locationService = inject(LocationService);
 
-  storageForm = inject(StorageFormComponent);
+  private storageForm = inject(StorageFormComponent);
   @Input() isEditMode: boolean | undefined;
 
-  terminalData!: any;
-  currentPosition!: { x: number | null, y: number | null, z: number | null };
+  private terminalData!: any;
+  private currentPosition!: { x: number | null, y: number | null, z: number | null };
 
-  selectedContainer!: THREE.Mesh;
-  highlightedObjects: Set<THREE.Object3D> = new Set<THREE.Object3D>();
+  private selectedContainer!: THREE.Mesh;
+  private highlightedObjects: Set<THREE.Object3D> = new Set<THREE.Object3D>();
 
+  private initialMouse: THREE.Vector2 = new THREE.Vector2();
+  private dragThreshold: number = 5; // pixels
+
+  private currentlyMoving: boolean = false;
 
   @ViewChild('rendererContainer', { static: true }) rendererContainer!: ElementRef;
   private stats = new Stats();
@@ -51,6 +55,7 @@ export class StorageThreeDComponent implements AfterViewInit {
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
   private containerMeshes: THREE.Mesh[] = [];
+  private plane!: THREE.Mesh;
 
   private modelUrls = [
     [/*'../../../../assets/3js/containers/3m_yellow.glb', '../../../../assets/3js/containers/3m_green.glb'*/],
@@ -66,7 +71,7 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.storageFormService.position$.subscribe(val => this.currentPosition = val);
   }
 
-  loadStorageData(): void {
+  private loadStorageData(): void {
     this.dashboardService.getSelectedTerminal().subscribe({
       next: (selectedTerminal) => {
         if (selectedTerminal && selectedTerminal.id) {
@@ -128,8 +133,9 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.composer.addPass(gammaCorrectionPass);
 
     // Add event listeners for mouse move and click
+    this.renderer.domElement.addEventListener('mousedown', this.onMouseDown.bind(this));
+    this.renderer.domElement.addEventListener('mouseup', this.onMouseUp.bind(this));
     this.renderer.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false);
-    this.renderer.domElement.addEventListener('click', this.onClick.bind(this), false);
 
     this.animate();
   }
@@ -145,7 +151,7 @@ export class StorageThreeDComponent implements AfterViewInit {
   }
 
   @HostListener('window:resize', ['$event'])
-  onWindowResize(): void {
+  public onWindowResize(): void {
     const containerWidth = this.rendererContainer.nativeElement.clientWidth;
     const containerHeight = this.rendererContainer.nativeElement.clientHeight;
     this.camera.aspect = containerWidth / containerHeight;
@@ -155,25 +161,46 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.outlinePass.setSize(containerWidth, containerHeight);
   }
 
+  public onMoving() {
+    this.currentlyMoving = true;
+  }
+  
+  public onStoppedMoving() {
+    this.currentlyMoving = false;
+    this.storageForm.changeStoredAtValue(this.selectedContainer.position.z/2.75, this.selectedContainer.position.x/6.75, this.selectedContainer.position.y/2.9);
+    // this.storageFormService.setPosition({x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9});
+    this.moveContainer({x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9})
+    // this.storageForm.checkPosition()
+  }
+
   private onMouseMove(event: MouseEvent): void {
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.containerMeshes);
 
-    // Clear previously highlighted objects except the selected one
-    this.highlightedObjects.clear();
-    if (this.selectedContainer) {
-      this.highlightedObjects.add(this.selectedContainer);
+    if (!this.currentlyMoving) {
+      const intersects = this.raycaster.intersectObjects(this.containerMeshes);
+
+      this.highlightedObjects.clear();
+      if (this.selectedContainer) {
+        this.highlightedObjects.add(this.selectedContainer);
+      }
+
+      if (intersects.length > 0) {
+        this.highlightedObjects.add(intersects[0].object);
+      }
+
+      this.outlinePass.selectedObjects = Array.from(this.highlightedObjects);
+    } else {
+      const intersects = this.raycaster.intersectObject(this.plane);
+
+      if (intersects.length > 0) {
+        const intersectPoint = intersects[0].point;
+        const snappedPosition = this.getSnappedPosition(intersectPoint);
+        this.selectedContainer.position.copy(snappedPosition);
+      }
     }
-
-    if (intersects.length > 0) {
-      this.highlightedObjects.add(intersects[0].object);
-    }
-
-    this.outlinePass.selectedObjects = Array.from(this.highlightedObjects);
   }
 
   private onClick(event: MouseEvent): void {
@@ -182,19 +209,40 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.containerMeshes);
+    if (!this.currentlyMoving) {
+      const intersects = this.raycaster.intersectObjects(this.containerMeshes);
 
-    if (intersects.length > 0) {
-      const intersectedObject = intersects[0].object;
-      if (intersectedObject.userData && intersectedObject.userData['containerData']) {
-        console.log(intersectedObject.userData['containerData']);
-        if(this.isEditMode)
-          this.storageForm.changeStorageData(intersectedObject.userData['containerData'].occupation)
+      if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+        if (intersectedObject.userData && intersectedObject.userData['containerData']) {
+          console.log(intersectedObject.userData['containerData']);
+          if (this.isEditMode)
+            this.storageForm.changeStorageData(intersectedObject.userData['containerData'].occupation);
+        }
       }
+    } else {
+      this.onStoppedMoving();
     }
   }
 
-  setSelectedContainer() {
+  private onMouseDown(event: MouseEvent): void {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.initialMouse.x = event.clientX - rect.left;
+    this.initialMouse.y = event.clientY - rect.top;
+  }
+
+  private onMouseUp(event: MouseEvent): void {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const finalMouse = new THREE.Vector2(event.clientX - rect.left, event.clientY - rect.top);
+
+    const distance = this.initialMouse.distanceTo(finalMouse);
+
+    if (distance < this.dragThreshold) {
+      this.onClick(event);
+    }
+  }
+
+  public setSelectedContainer() {
     if (this.currentPosition.x != null && this.currentPosition.y != null && this.currentPosition.z != null)
       this.selectedContainer = this.terminalData[this.currentPosition.x][this.currentPosition.y][this.currentPosition.z].mesh;
 
@@ -219,13 +267,13 @@ export class StorageThreeDComponent implements AfterViewInit {
 
   private loadModels(): Promise<{ [key: number]: THREE.Mesh[] }> {
     const loadModelPromises: Promise<THREE.Mesh[]>[] = [];
-  
+
     for (const size in this.modelUrls) {
       const urls = this.modelUrls[size];
       const loadModelsForSize = urls.map(url => this.loadModel(url));
       loadModelPromises.push(Promise.all(loadModelsForSize));
     }
-  
+
     return Promise.all(loadModelPromises).then(results => {
       const models: { [key: number]: THREE.Mesh[] } = {};
       results.forEach((modelArray, index) => {
@@ -246,7 +294,7 @@ export class StorageThreeDComponent implements AfterViewInit {
         for (let z = 0; z < this.terminalData[x][y].length; z++) {
           const cell = this.terminalData[x][y][z];
           if (cell.occupation != null) { // MAYBE A BETTER CHECK BUT THIS ONE IS FINE
-            if(cell.size != 2 || cell.occupation == this.terminalData[x][Number(y)+1][z].occupation)
+            if (cell.size != 2 || cell.occupation == this.terminalData[x][Number(y) + 1][z].occupation)
               this.createContainer({ x, y, z }, cell.size, cell.accessibility, cell.occupation);
           }
         }
@@ -254,24 +302,24 @@ export class StorageThreeDComponent implements AfterViewInit {
     }
     const x = this.terminalData.length;
     const y = this.terminalData[0].length;
-    const geometry = new THREE.PlaneGeometry( y*7,x*3 );
-    const material = new THREE.MeshBasicMaterial( {color: 0x9f9f9f, side: THREE.FrontSide} );
-    const plane = new THREE.Mesh( geometry, material );
-    plane.position.set(y/2*6.75-6.75,-0.1,x/2*2.75-2.75)
-    plane.rotateX(-Math.PI/2)
-    this.scene.add( plane );
+    const geometry = new THREE.PlaneGeometry(y * 7, x * 3);
+    const material = new THREE.MeshBasicMaterial({ color: 0x9f9f9f, side: THREE.FrontSide });
+    this.plane = new THREE.Mesh(geometry, material);
+    this.plane.position.set(y / 2 * 6.75 - 6.75, -0.1, x / 2 * 2.75 - 2.75)
+    this.plane.rotateX(-Math.PI / 2)
+    this.scene.add(this.plane);
   }
 
-  createRectangleOutline(position: THREE.Vector3, value: number) {
-    if(value == 0)
+  private createRectangleOutline(position: THREE.Vector3, value: number) {
+    if (value == 0)
       return
     const color = value === 2 ? 0x00ff00 : 0xffff00; // Green for 2, Yellow for 1
     const vertices = new Float32Array([
-         0.0,  0.0, 0.0,  // Top-left
-        -6.36,  0.0, 0.0,  // Top-right
-        -6.36,  0.0, -2.42,  // Bottom-right
-         0.0,  0.0, -2.42,  // Bottom-left
-         0.0,  0.0, 0.0   // Closing the rectangle by connecting back to the top-left
+      0.0, 0.0, 0.0,  // Top-left
+      -6.36, 0.0, 0.0,  // Top-right
+      -6.36, 0.0, -2.42,  // Bottom-right
+      0.0, 0.0, -2.42,  // Bottom-left
+      0.0, 0.0, 0.0   // Closing the rectangle by connecting back to the top-left
     ]);
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
@@ -281,33 +329,33 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.scene.add(rectangleOutline);
   }
 
-  createContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number, occupation: string): void {
+  private createContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number, occupation: string): void {
     const modelsForSize = this.loadedModels[size];
     if (!modelsForSize || modelsForSize.length === 0) {
       console.log(position)
       console.error(`No models found for size ${size}`);
       return;
     }
-  
+
     // Randomly pick a color
     const randomIndex = Math.floor(Math.random() * modelsForSize.length);
     const model = modelsForSize[randomIndex].clone();
-  
+
     if (model) {
       const { x, y, z } = position;
       model.position.set(y * 6.75, z * 2.9, x * 2.75);
       model.userData['containerData'] = { location: position, size, occupation: this.terminalData[x][y][z].occupation, accessibility };
-  
+
       this.scene.add(model);
       this.containerMeshes.push(model);
       this.terminalData[x][y][z].occupation = occupation;
       this.terminalData[x][y][z].size = size;
       this.terminalData[x][y][z].mesh = model;
 
-      if(size == 2) {
-        this.terminalData[x][Number(y)+1][z].occupation = occupation;
-        this.terminalData[x][Number(y)+1][z].size = size;
-        this.terminalData[x][Number(y)+1][z].mesh = model;
+      if (size == 2) {
+        this.terminalData[x][Number(y) + 1][z].occupation = occupation;
+        this.terminalData[x][Number(y) + 1][z].size = size;
+        this.terminalData[x][Number(y) + 1][z].mesh = model;
       }
 
     } else {
@@ -315,97 +363,98 @@ export class StorageThreeDComponent implements AfterViewInit {
     }
   }
 
-  addContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number, occupation: string): void {
+  public addContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number, occupation: string): void {
     if (this.locationService.checkCreateLocation(this.terminalData, position, size, accessibility)) {
       // Ensure models are loaded before adding the container
       if (!this.loadedModels[1] || !this.loadedModels[2]) {
         this.loadModels().then(models => {
           this.loadedModels = models;
           this.createContainer(position, size, accessibility, occupation);
-          this.storageFormService.setPosition({x: position.x, y: position.y, z: position.z});
+          this.storageFormService.setPosition({ x: position.x, y: position.y, z: position.z });
         }).catch(error => {
           console.error('Failed to load models:', error);
         });
       } else {
         this.createContainer(position, size, accessibility, occupation);
-        this.storageFormService.setPosition({x: position.x, y: position.y, z: position.z});
+        this.storageFormService.setPosition({ x: position.x, y: position.y, z: position.z });
       }
     } else {
       console.warn('Invalid location for the container:', position);
     }
   }
-  
 
-  setOccupation(position: { x: number, y: number, z: number }, occupation: string): void {
+  public setOccupation(position: { x: number, y: number, z: number }, occupation: string): void {
     this.terminalData[position.x][position.y][position.z].occupation = occupation;
     this.terminalData[position.x][position.y][position.z].mesh.userData['containerData'].occupation = occupation;
-    if(this.terminalData[position.x][position.y][position.z].size == 2) {
-      this.terminalData[position.x][Number(position.y)+1][position.z].occupation = occupation;
+    if (this.terminalData[position.x][position.y][position.z].size == 2) {
+      this.terminalData[position.x][Number(position.y) + 1][position.z].occupation = occupation;
     }
   }
 
-
-  moveContainer(position: { x: number, y: number, z: number }) {
+  public moveContainer(position: { x: number, y: number, z: number }) {
     const x = this.currentPosition.x;
     const y = this.currentPosition.y;
     const z = this.currentPosition.z;
-    if(x != null && y != null && z != null){
-      console.log("move")
+    if (x != null && y != null && z != null) {
+      console.log("move from:"+x+", "+y+", "+z);
+      console.log("to:"+position.x+", "+position.y+", "+position.z);
       if (this.terminalData[x][y][z]?.mesh) {
-          const x2 = position.x;
-          const y2 = position.y;
-          const z2 = position.z;
+        const x2 = position.x;
+        const y2 = position.y;
+        const z2 = position.z;
 
-          if (this.locationService.checkLocation(this.terminalData, { x, y, z }, { x: x2, y: y2, z: z2 }, this.terminalData[x][y][z].size, this.terminalData[x][y][z].accessibility)) {
-              console.log("allowed")
-              // Update mesh position
-              this.terminalData[x][y][z].mesh.position.set(y2 * 6.75, z2 * 2.9, x2 * 2.75);
-              this.terminalData[x][y][z].mesh.userData['containerData'].location = { x: x2, y: y2, z: z2 };
+        if (this.locationService.checkLocation(this.terminalData, { x, y, z }, { x: x2, y: y2, z: z2 }, this.terminalData[x][y][z].size, this.terminalData[x][y][z].accessibility)) {
+          console.log("allowed")
+          // Update mesh position
+          this.terminalData[x][y][z].mesh.position.set(y2 * 6.75, z2 * 2.9, x2 * 2.75);
+          this.terminalData[x][y][z].mesh.userData['containerData'].location = { x: x2, y: y2, z: z2 };
 
-              if(this.terminalData[x][y][z].size == 2) {
-                // Transfer data to the new location
-              this.terminalData[x2][Number(y2)+1][z2] = {
-                ...this.terminalData[x2][Number(2)+1][z2],
-                occupation: this.terminalData[x][Number(y)+1][z].occupation,
-                size: this.terminalData[x][Number(y)+1][z].size,
-                mesh: this.terminalData[x][Number(y)+1][z].mesh,
+          if (this.terminalData[x][y][z].size == 2) {
+            // Transfer data to the new location
+            this.terminalData[x2][Number(y2) + 1][z2] = {
+              ...this.terminalData[x2][Number(2) + 1][z2],
+              occupation: this.terminalData[x][Number(y) + 1][z].occupation,
+              size: this.terminalData[x][Number(y) + 1][z].size,
+              mesh: this.terminalData[x][Number(y) + 1][z].mesh,
             };
 
             // Clear data from the old location
-            this.terminalData[x][Number(y)+1][z] = {
-                ...this.terminalData[x][Number(y)+1][z],
-                occupation: null,
-                size: null,
-                mesh: undefined,
+            this.terminalData[x][Number(y) + 1][z] = {
+              ...this.terminalData[x][Number(y) + 1][z],
+              occupation: null,
+              size: null,
+              mesh: undefined,
             };
-              }
-              
-              // Transfer data to the new location
-              this.terminalData[x2][y2][z2] = {
-                  ...this.terminalData[x2][y2][z2],
-                  occupation: this.terminalData[x][y][z].occupation,
-                  size: this.terminalData[x][y][z].size,
-                  mesh: this.terminalData[x][y][z].mesh,
-              };
-
-              // Clear data from the old location
-              this.terminalData[x][y][z] = {
-                  ...this.terminalData[x][y][z],
-                  occupation: null,
-                  size: null,
-                  mesh: undefined,
-              };
-
-              this.storageFormService.setPosition({x: x2, y: y2, z: z2});
           }
+
+          // Transfer data to the new location
+          this.terminalData[x2][y2][z2] = {
+            ...this.terminalData[x2][y2][z2],
+            occupation: this.terminalData[x][y][z].occupation,
+            size: this.terminalData[x][y][z].size,
+            mesh: this.terminalData[x][y][z].mesh,
+          };
+
+          // Clear data from the old location
+          this.terminalData[x][y][z] = {
+            ...this.terminalData[x][y][z],
+            occupation: null,
+            size: null,
+            mesh: undefined,
+          };
+
+          this.storageFormService.setPosition({ x: x2, y: y2, z: z2 });
+        }
       }
     }
+    console.log(this.currentPosition)
+    console.log(this.terminalData)
   }
 
-  getTerminal3dArrayData() {
+  public getTerminal3dArrayData() {
     // Deep copy the terminalDataOriginal
     const terminalDataCopy = JSON.parse(JSON.stringify(this.terminalData));
-  
+
     // Function to remove .mesh property
     const removeMeshProperty = (data: any) => {
       for (let x = 0; x < data.length; x++) {
@@ -418,11 +467,20 @@ export class StorageThreeDComponent implements AfterViewInit {
         }
       }
     };
-  
+
     // Remove .mesh property from the copied data
     removeMeshProperty(terminalDataCopy);
-  
+
     console.log(terminalDataCopy);
     return terminalDataCopy;
+  }
+
+  private getSnappedPosition(position: THREE.Vector3): THREE.Vector3 {
+    const gridX = Math.round(position.x / 6.75);
+    const gridZ = Math.round(position.z / 2.75);
+    let gridY = -2;
+    if (this.currentPosition.x != null && this.currentPosition.y != null && this.currentPosition.z != null)
+     gridY = this.locationService.checkMoveLocation(this.terminalData, this.currentPosition, {x:gridZ, y:gridX, z:0},  this.terminalData[this.currentPosition.x][this.currentPosition.y][this.currentPosition.z].size, this.terminalData[this.currentPosition.x][this.currentPosition.y][this.currentPosition.z].accessibility)
+    return new THREE.Vector3(gridX * 6.75, gridY*2.9, gridZ * 2.75);
   }
 }

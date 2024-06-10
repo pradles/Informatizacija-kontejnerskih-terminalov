@@ -61,9 +61,9 @@ export class StorageFormComponent implements OnInit {
     this.storageForm = this.fb.group({
       dateImported: [new Date().toISOString().slice(0, 16), Validators.required],
       dateExported: [''],
-      currentlyStoredAtX: [''],
-      currentlyStoredAtY: [''],
-      currentlyStoredAtZ: [''],
+      currentlyStoredAtX: [null],
+      currentlyStoredAtY: [null],
+      currentlyStoredAtZ: [null],
       dateScheduledForExport: [''],
     });
 
@@ -122,6 +122,8 @@ export class StorageFormComponent implements OnInit {
   // Load storage data by ID
   loadStorageData(id: string): void {
     this.storageNumberId = [];
+    // <==================================================================== TLE RABMO SHRANT V this.storageData trenutnu stanje form-a -> lohk porabmo tudi za on submit
+    // kdr updatmo porabmo sam tu, zravn lohk nrdimo se en ekstra variable al je blu spremenjenu al ne (true/false), da vidmo ce rabmo slpoh updejtt;
     this.storageForm.reset();
     this.containerForm.reset();
     this.storageData.forEach((storage: any) => {
@@ -177,12 +179,23 @@ export class StorageFormComponent implements OnInit {
   onFocusDropdown(): void {
     this.storageNumberIdDropdown = true;
   }
+
   onBlurDropdown(): void {
     setTimeout(() => 
       {
         this.storageNumberIdDropdown = false;
       },
       120);
+  }
+
+  changeStoredAtValue(newValueX: number, newValueY: number, newValueZ: number) {
+    console.log("patched")
+    this.storageForm.patchValue({
+      currentlyStoredAtX: newValueX,
+      currentlyStoredAtY: newValueY,
+      currentlyStoredAtZ: newValueZ,
+    });
+    console.log(this.storageForm.value)
   }
 
   // Handle form submission
