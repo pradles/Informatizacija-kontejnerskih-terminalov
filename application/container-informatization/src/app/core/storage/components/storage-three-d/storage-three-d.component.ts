@@ -1,4 +1,5 @@
 import { Component, ElementRef, ViewChild, HostListener, AfterViewInit, inject, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -19,7 +20,7 @@ import { StorageFormComponent } from '../storage-form/storage-form.component';
 @Component({
   selector: 'app-storage-three-d',
   standalone: true,
-  imports: [],
+  imports: [ CommonModule ],
   templateUrl: './storage-three-d.component.html',
   styleUrl: './storage-three-d.component.css'
 })
@@ -136,6 +137,7 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.renderer.domElement.addEventListener('mousedown', this.onMouseDown.bind(this));
     this.renderer.domElement.addEventListener('mouseup', this.onMouseUp.bind(this));
     this.renderer.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+    this.renderer.domElement.addEventListener('dblclick', this.onDoubleClick.bind(this), false);
 
     this.animate();
   }
@@ -171,6 +173,27 @@ export class StorageThreeDComponent implements AfterViewInit {
     // this.storageFormService.setPosition({x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9});
     this.moveContainer({x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9})
     // this.storageForm.checkPosition()
+  }
+  
+  private onDoubleClick(event: MouseEvent): void {
+    // Prevent default action of double-click event to avoid interference
+    event.preventDefault();
+
+    if(this.isEditMode)
+      this.onMoving();
+  
+    // // Perform your logic for double-click here
+    // const rect = this.renderer.domElement.getBoundingClientRect();
+    // this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    // this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  
+    // this.raycaster.setFromCamera(this.mouse, this.camera);
+    // const intersects = this.raycaster.intersectObjects(this.containerMeshes);
+  
+    // // Example: log information about double-clicked objects
+    // if (intersects.length > 0) {
+    //   console.log('Double-clicked object:', intersects[0].object);
+    // }
   }
 
   private onMouseMove(event: MouseEvent): void {
@@ -210,14 +233,16 @@ export class StorageThreeDComponent implements AfterViewInit {
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
     if (!this.currentlyMoving) {
-      const intersects = this.raycaster.intersectObjects(this.containerMeshes);
+      if(this.isEditMode){
+        const intersects = this.raycaster.intersectObjects(this.containerMeshes);
 
-      if (intersects.length > 0) {
-        const intersectedObject = intersects[0].object;
-        if (intersectedObject.userData && intersectedObject.userData['containerData']) {
-          console.log(intersectedObject.userData['containerData']);
-          if (this.isEditMode)
-            this.storageForm.changeStorageData(intersectedObject.userData['containerData'].occupation);
+        if (intersects.length > 0) {
+          const intersectedObject = intersects[0].object;
+          if (intersectedObject.userData && intersectedObject.userData['containerData']) {
+            console.log(intersectedObject.userData['containerData']);
+            if (this.isEditMode)
+              this.storageForm.changeStorageData(intersectedObject.userData['containerData'].occupation);
+          }
         }
       }
     } else {
@@ -308,6 +333,7 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.plane.position.set(y / 2 * 6.75 - 6.75, -0.1, x / 2 * 2.75 - 2.75)
     this.plane.rotateX(-Math.PI / 2)
     this.scene.add(this.plane);
+    this.setSelectedContainer();
   }
 
   private createRectangleOutline(position: THREE.Vector3, value: number) {
@@ -396,8 +422,6 @@ export class StorageThreeDComponent implements AfterViewInit {
     const y = this.currentPosition.y;
     const z = this.currentPosition.z;
     if (x != null && y != null && z != null) {
-      console.log("move from:"+x+", "+y+", "+z);
-      console.log("to:"+position.x+", "+position.y+", "+position.z);
       if (this.terminalData[x][y][z]?.mesh) {
         const x2 = position.x;
         const y2 = position.y;
@@ -447,8 +471,6 @@ export class StorageThreeDComponent implements AfterViewInit {
         }
       }
     }
-    console.log(this.currentPosition)
-    console.log(this.terminalData)
   }
 
   public getTerminal3dArrayData() {

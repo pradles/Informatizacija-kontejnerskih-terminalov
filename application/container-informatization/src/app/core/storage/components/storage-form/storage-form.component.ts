@@ -36,6 +36,8 @@ export class StorageFormComponent implements OnInit {
 
   storageData: any;
   singleStorageData: any;
+  updated: boolean = false;
+
   // for dropdown
   storageNumberId: { label: string, value: string }[] = [];
   filteredStorageNumberId: { label: string, value: string }[] = [];
@@ -74,6 +76,15 @@ export class StorageFormComponent implements OnInit {
       contents: ['', Validators.required],
       storageType: [null, [Validators.required, this.validatorService.allowedStorageTypesValidator([1, 2])]],
       weight: ['', Validators.required],
+    });
+
+    // Subscribe to form value changes to track updates
+    this.storageForm.valueChanges.subscribe(() => {
+      this.updated = true;
+    });
+  
+    this.containerForm.valueChanges.subscribe(() => {
+      this.updated = true;
     });
 
     // Subscribe to position updates from the storage form service
@@ -222,42 +233,50 @@ export class StorageFormComponent implements OnInit {
   }
 
   // Update all data in edit mode
-  updateMode() {
-    this.storageDataToUpdate.forEach(data => {
-      this.containerService.updateContainer(data.container, data.containerId).subscribe({
-        next: (res) => {
-          console.log(res);
-          this.storageService.updateStorageRecord(data.storage, data.storageId).subscribe({
-            next: (res) => {
-              console.log(res);
-              const terminalObj = {
-                _id: this.dashboardService.getSelectedTerminalMenu().id,
-                array3D: this.storageThreeD.getTerminal3dArrayData()
-              };
-              this.terminalService.updateTerminal(terminalObj).subscribe({
-                next: (res) => {
-                  console.log(res);
-                  this.loading = false;
-                },
-                error: (err) => {
-                  console.log(err);
-                  this.loading = false;
-                }
-              });
-            },
-            error: (err) => {
-              console.log(err);
-              this.pageStorage.openErrorModal(err.error.message);
-            }
-          });
-        },
-        error: (err) => {
-          console.log(err);
-          this.pageStorage.openErrorModal(err.error.message);
-        }
-      });
-    });
-  }
+    updateMode() {
+      const updatedData = this.storageData.filter((storage: any) => storage.updated);
+    
+      if (updatedData.length > 0) {
+        const formattedUpdatedData = updatedData.map((storage: any) => ({
+          ...storage,
+          containerId: storage.containerId.map((container: any) => ({
+            _id: container._id,
+            containerNumber: container.containerNumber,
+            size: container.size,
+            contents: container.contents,
+            storageType: container.storageType,
+            weight: container.weight
+          })),
+          terminalId: [{_id: storage.terminalId[0]._id}] // Ensure terminalId is in the correct format
+        }));
+
+        this.storageService.updateStorageRecords(formattedUpdatedData).subscribe({
+          next: (res) => {
+            console.log(res);
+            const terminalObj = {
+              _id: this.dashboardService.getSelectedTerminalMenu().id,
+              array3D: this.storageThreeD.getTerminal3dArrayData()
+            };
+            this.terminalService.updateTerminal(terminalObj).subscribe({
+              next: (res) => {
+                console.log(res);
+                this.loading = false;
+              },
+              error: (err) => {
+                console.log(err);
+                this.loading = false;
+              }
+            });
+          },
+          error: (err) => {
+            console.log(err);
+            this.pageStorage.openErrorModal(err.error.message);
+          }
+        });
+      } else {
+        this.loading = false;
+      }
+    }
 
   // Create new records in create mode
   createMode() {
@@ -340,27 +359,28 @@ export class StorageFormComponent implements OnInit {
 
   // Save current storage data to the update queue
   saveStorageData() {
-    const containerObj = {
-      containerNumber: this.containerForm.value.containerNumber,
-      size: this.containerForm.value.size,
-      contents: this.containerForm.value.contents,
-      storageType: this.containerForm.value.storageType,
-      weight: this.containerForm.value.weight
-    };
-    const storageObj = {
-      containerId: this.singleStorageData.containerId[0]._id,
-      terminalId: this.singleStorageData.terminalId[0]._id,
-      dateImported: this.storageForm.value.dateImported,
-      currentlyStoredAt: { x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ },
-      dateScheduledForExport: this.storageForm.value.dateScheduledForExport
-    };
-
-    this.storageDataToUpdate.push({
-      container: containerObj,
-      containerId: this.singleStorageData.containerId[0]._id,
-      storage: storageObj,
-      storageId: this.singleStorageData._id
-    });
+    const updatedStorageIndex = this.storageData.findIndex((storage: any) => storage._id === this.singleStorageData._id);
+    if (updatedStorageIndex !== -1) {
+      const formattedData = {
+        ...this.storageData[updatedStorageIndex],
+        currentlyStoredAt: {
+          x: this.storageForm.value.currentlyStoredAtX,
+          y: this.storageForm.value.currentlyStoredAtY,
+          z: this.storageForm.value.currentlyStoredAtZ
+        },
+        dateImported: this.storageForm.value.dateImported,
+        dateExported: this.storageForm.value.dateExported,
+        dateScheduledForExport: this.storageForm.value.dateScheduledForExport,
+        containerId: [{
+          _id: this.storageData[updatedStorageIndex].containerId[0]._id, // Preserve the _id
+          ...this.containerForm.value
+        }],
+        updated: this.updated // Check if anything changed
+      };
+      this.storageData[updatedStorageIndex] = formattedData;
+    }
+    this.updated = false;
+    console.log(this.storageData);
   }
 
   // Change the URL to reflect the new storage ID without triggering a reload

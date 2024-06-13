@@ -20,6 +20,11 @@ export class StorageService {
     return this.http.put<any>(`${apiUrls.StorageServiceApi}update/${storageId}`, storageObj, {withCredentials:true} );
   }
 
+  updateStorageRecords(storageObj: any) {
+    console.log(storageObj)
+    return this.http.put<any>(`${apiUrls.StorageServiceApi}update`, storageObj, {withCredentials:true} );
+  }
+
   getTerminalStorageRecords(terminalId: string) {
     return this.http.get<any>(`${apiUrls.StorageServiceApi}terminal/${terminalId}`, {withCredentials:true} );
   }

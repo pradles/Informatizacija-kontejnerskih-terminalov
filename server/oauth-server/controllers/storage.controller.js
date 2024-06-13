@@ -128,3 +128,73 @@ export const updateStorageRecord = async (req, res, next) => {
         return next(CreateError(500, "Error updating storage record"));
     }
 };
+
+export const updateStorageRecords = async (req, res, next) => {
+    try {
+        const storageData  = req.body; // Expecting an array of storage data
+
+        if (!Array.isArray(storageData)) {
+            return next(CreateError(400, "Invalid data format. Expecting an array of storage records."));
+        }
+
+        // const updatedRecords = [];
+
+        for (const storage of storageData) {
+            const {
+                _id,
+                containerId,
+                terminalId,
+                dateImported,
+                dateExported,
+                currentlyStoredAt,
+                dateScheduledForExport,
+            } = storage;
+
+            console.log(containerId[0]._id)
+
+            // Ensure the container and terminal exist
+            if (containerId && containerId[0]?._id) {
+                const container = await Container.findById(containerId[0]._id);
+                if (!container) {
+                    return next(CreateError(404, `Container not found for ID: ${containerId[0]._id}`));
+                }
+            }
+
+            if (terminalId && terminalId[0]?._id) {
+                const terminal = await Terminal.findById(terminalId[0]._id);
+                if (!terminal) {
+                    return next(CreateError(404, `Terminal not found for ID: ${terminalId[0]._id}`));
+                }
+            }
+
+            // Find the storage record by ID and update it
+            const updatedStorage = await Storage.findByIdAndUpdate(
+                _id,
+                {
+                    containerId,
+                    terminalId,
+                    dateImported,
+                    dateExported,
+                    currentlyStoredAt,
+                    dateScheduledForExport
+                },
+                { new: true, runValidators: true }
+            ).populate('containerId').populate('terminalId');
+
+            if (!updatedStorage) {
+                return next(CreateError(404, `Storage record not found for ID: ${_id}`));
+            }
+
+            // Update the container record as well
+            if (containerId && containerId[0]?._id) {
+                await Container.findByIdAndUpdate(containerId[0]._id, containerId[0], { new: true, runValidators: true });
+            }
+            
+            // updatedRecords.push(updatedStorage);
+        }
+
+        return next(CreateSuccess(200, "Storage records updated successfully"/*, updatedRecords*/));
+    } catch (error) {
+        return next(CreateError(500, "Error updating storage records"));
+    }
+};

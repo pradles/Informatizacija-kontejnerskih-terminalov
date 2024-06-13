@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { verifyRole } from '../utils/verifiedToken.js';
-import { createStorageRecord, getAllStorageRecords, getStorageRecordsById, getTerminalStorageRecords, updateStorageRecord } from '../controllers/storage.controller.js';
+import { createStorageRecord, getAllStorageRecords, getStorageRecordsById, getTerminalStorageRecords, updateStorageRecord, updateStorageRecords } from '../controllers/storage.controller.js';
 
 const router = express.Router();
 
@@ -10,6 +10,9 @@ router.post('/create', verifyRole, createStorageRecord);
 
 // Update storage record
 router.put('/update/:id', verifyRole, updateStorageRecord);
+
+// Update storage records and containers in array 
+router.put('/update', verifyRole, updateStorageRecords);
 
 // Get all storage records
 router.get('/', verifyRole, getAllStorageRecords);
