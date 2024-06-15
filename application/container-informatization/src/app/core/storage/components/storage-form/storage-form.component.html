@@ -153,7 +153,8 @@
                 <div class="h-16 mt-1 max-w-52">
                     <select 
                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                      formControlName="size">
+                      formControlName="size"
+                      (ngModelChange)="!isEditMode ? checkCreate() : ''">
                       <option value="" disabled selected class="text-gray-700">Container size</option>
                       <option value="0">3m</option>
                       <option value="1">6m</option>
@@ -183,7 +184,8 @@
                 <div class="h-16 mt-1 max-w-52">
                     <select 
                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                      formControlName="storageType">
+                      formControlName="storageType"
+                      (ngModelChange)="!isEditMode ? checkCreate() : ''">
                       <option value="" disabled selected class="text-gray-700">Storage type</option>
                       <option value="2">Normal</option>
                       <option value="1">Special</option>

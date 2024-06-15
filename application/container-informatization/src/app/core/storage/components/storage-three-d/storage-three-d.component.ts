@@ -178,9 +178,8 @@ export class StorageThreeDComponent implements AfterViewInit {
   private onDoubleClick(event: MouseEvent): void {
     // Prevent default action of double-click event to avoid interference
     event.preventDefault();
-
-    if(this.isEditMode)
-      this.onMoving();
+    
+    this.onMoving();
   
     // // Perform your logic for double-click here
     // const rect = this.renderer.domElement.getBoundingClientRect();
@@ -409,6 +408,35 @@ export class StorageThreeDComponent implements AfterViewInit {
     }
   }
 
+  public addMoveContainer(size: number, accessibility: number): void {
+    let positionFound = false;
+    let position: { x: number, y: number, z: number } = { x: 0, y: 0, z: 0 };
+
+    for (let x = 0; x < this.terminalData.length; x++) {
+      for (let y = 0; y < this.terminalData[x].length; y++) {
+        for (let z = 0; z < this.terminalData[x][y].length; z++) {
+          position = { x, y, z };
+          if (this.locationService.checkCreateLocation(this.terminalData, position, size, accessibility)) {
+            positionFound = true;
+            break;
+          }
+        }
+        if (positionFound) break;
+      }
+      if (positionFound) break;
+    }
+
+    if(positionFound) {
+      this.addContainer(position, size, accessibility, "todo");
+      this.setSelectedContainer();
+      this.storageForm.changeStoredAtValue(this.selectedContainer.position.z/2.75, this.selectedContainer.position.x/6.75, this.selectedContainer.position.y/2.9);
+      this.onMoving();
+    }
+
+
+
+  }
+
   public setOccupation(position: { x: number, y: number, z: number }, occupation: string): void {
     this.terminalData[position.x][position.y][position.z].occupation = occupation;
     this.terminalData[position.x][position.y][position.z].mesh.userData['containerData'].occupation = occupation;
@@ -426,22 +454,23 @@ export class StorageThreeDComponent implements AfterViewInit {
         const x2 = position.x;
         const y2 = position.y;
         const z2 = position.z;
-
+  
         if (this.locationService.checkLocation(this.terminalData, { x, y, z }, { x: x2, y: y2, z: z2 }, this.terminalData[x][y][z].size, this.terminalData[x][y][z].accessibility)) {
-          console.log("allowed")
-          // Update mesh position
+          console.log("allowed");
+  
+          // Update mesh position of the selected container
           this.terminalData[x][y][z].mesh.position.set(y2 * 6.75, z2 * 2.9, x2 * 2.75);
           this.terminalData[x][y][z].mesh.userData['containerData'].location = { x: x2, y: y2, z: z2 };
-
+  
           if (this.terminalData[x][y][z].size == 2) {
             // Transfer data to the new location
             this.terminalData[x2][Number(y2) + 1][z2] = {
-              ...this.terminalData[x2][Number(2) + 1][z2],
+              ...this.terminalData[x2][Number(y2) + 1][z2],
               occupation: this.terminalData[x][Number(y) + 1][z].occupation,
               size: this.terminalData[x][Number(y) + 1][z].size,
               mesh: this.terminalData[x][Number(y) + 1][z].mesh,
             };
-
+  
             // Clear data from the old location
             this.terminalData[x][Number(y) + 1][z] = {
               ...this.terminalData[x][Number(y) + 1][z],
@@ -450,7 +479,7 @@ export class StorageThreeDComponent implements AfterViewInit {
               mesh: undefined,
             };
           }
-
+  
           // Transfer data to the new location
           this.terminalData[x2][y2][z2] = {
             ...this.terminalData[x2][y2][z2],
@@ -458,7 +487,7 @@ export class StorageThreeDComponent implements AfterViewInit {
             size: this.terminalData[x][y][z].size,
             mesh: this.terminalData[x][y][z].mesh,
           };
-
+  
           // Clear data from the old location
           this.terminalData[x][y][z] = {
             ...this.terminalData[x][y][z],
@@ -467,11 +496,22 @@ export class StorageThreeDComponent implements AfterViewInit {
             mesh: undefined,
           };
 
+          // Move containers above the current one down by one
+          for (let i = z + 1; i < this.terminalData[x][y].length; i++) {
+            if (this.terminalData[x][y][i]?.mesh) {
+              this.terminalData[x][y][i].mesh.position.y -= 2.9;
+              this.terminalData[x][y][i - 1] = this.terminalData[x][y][i];
+              this.terminalData[x][y][i] = { occupation: null, size: null, mesh: undefined, accessibility: this.terminalData[x][y][i - 1].accessibility };
+              this.storageForm.changeStoredAtValueWithId(this.terminalData[x][y][i-1].occupation, {x: x, y:y, z: i-1})
+            }
+          }
+  
           this.storageFormService.setPosition({ x: x2, y: y2, z: z2 });
         }
       }
     }
   }
+  
 
   public getTerminal3dArrayData() {
     // Deep copy the terminalDataOriginal
