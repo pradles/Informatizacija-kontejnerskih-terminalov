@@ -13,9 +13,14 @@ export class LocationService {
       return false;
     }
     const targetCell = storageData[x][y][z];
+
+    // Check if the it has the correct accessibility
+    if(targetCell.accessibility != accessibility){
+      return false;
+    }
   
-    // Check if the target location is unoccupied and has the correct accessibility
-    if ((targetCell.occupation != null && targetCell.occupation != storageData[currentLocation.x][currentLocation.y][currentLocation.z].occupation) || targetCell.accessibility != accessibility) {
+    // Check if the target location is unoccupied
+    if (targetCell.occupation != null && targetCell.occupation != storageData[currentLocation.x][currentLocation.y][currentLocation.z].occupation) {
       return false;
     }
 
@@ -39,12 +44,11 @@ export class LocationService {
       }    
 
     }
-  
+
     // Check if we put it on top of itself
     if (currentLocation.x === location.x && currentLocation.y === location.y) {
       return false;
     }
-
     return true;
   }
   
@@ -94,7 +98,6 @@ export class LocationService {
     }
 
     while(storageData[x][y][z].occupation != null && storageData[x][y][z]){
-
       z++;
     }
 

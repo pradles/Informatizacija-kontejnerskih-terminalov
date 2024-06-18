@@ -391,7 +391,7 @@ export class StorageFormComponent implements OnInit {
       this.storageData[updatedStorageIndex] = formattedData;
     }
     this.updated = false;
-    console.log(this.storageData);
+    // console.log(this.storageData);
   }
 
   // Change the URL to reflect the new storage ID without triggering a reload

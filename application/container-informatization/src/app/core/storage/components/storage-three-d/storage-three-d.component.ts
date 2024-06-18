@@ -168,11 +168,18 @@ export class StorageThreeDComponent implements AfterViewInit {
   }
   
   public onStoppedMoving() {
-    this.currentlyMoving = false;
-    this.storageForm.changeStoredAtValue(this.selectedContainer.position.z/2.75, this.selectedContainer.position.x/6.75, this.selectedContainer.position.y/2.9);
-    // this.storageFormService.setPosition({x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9});
-    this.moveContainer({x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9})
-    // this.storageForm.checkPosition()
+    const x = this.currentPosition.x;
+    const y = this.currentPosition.y;
+    const z = this.currentPosition.z;
+    if (x != null && y != null && z != null) {
+      if (this.locationService.checkLocation(this.terminalData, this.currentPosition, { x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9 }, this.terminalData[x][y][z].size, this.terminalData[x][y][z].accessibility)) {
+        this.currentlyMoving = false;
+        this.storageForm.changeStoredAtValue(this.selectedContainer.position.z/2.75, this.selectedContainer.position.x/6.75, this.selectedContainer.position.y/2.9);
+        // this.storageFormService.setPosition({x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9});
+        this.moveContainer({x: this.selectedContainer.position.z/2.75, y: this.selectedContainer.position.x/6.75, z: this.selectedContainer.position.y/2.9})
+        // this.storageForm.checkPosition()
+      }
+    }
   }
   
   private onDoubleClick(event: MouseEvent): void {
