@@ -1,0 +1,59 @@
+<div class="w-11/12">
+    <div class="bg-white shadow-sm rounded px-8 pt-6 pb-5 border border-gray-100 hover:shadow-md transition ease-in-out">
+        <h2 class="text-2xl mb-10">{{ isEditMode ? "User information:" : "Create new user" }}</h2>
+    
+    
+        <div class="flex flex-col sm:space-x-7 sm:flex-row">
+            <div class="">
+              <form [formGroup]="userForm" class="gap-y-8" (ngSubmit)="onSubmit()">
+                <div class="h-16 max-w-52">
+                  <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="firstName" type="text" formControlName="firstName" placeholder="First Name">
+                  <span *ngIf="userForm.hasError('required', 'firstName') && (userForm.controls['firstName'].dirty || userFormSubmitted)" class="text-red-500">First Name is required</span>
+                </div>
+                <div class="h-16 max-w-52">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="lastName" type="text" formControlName="lastName" placeholder="Last Name">
+                  <span *ngIf="userForm.hasError('required', 'lastName') && (userForm.controls['lastName'].dirty || userFormSubmitted)" class="text-red-500">Last Name is required</span>
+                </div>
+                <div class="h-16 max-w-52">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="email" type="text" formControlName="email" placeholder="Email">
+                  <span *ngIf="userForm.hasError('required', 'email') && (userForm.controls['email'].dirty || userFormSubmitted)" class="text-red-500">Email is required</span>
+                  <span *ngIf="userForm.hasError('email', 'email')" class="text-red-500">Email is invalid</span>
+                </div>
+                <div class="h-16 max-w-52">
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="username" type="text" formControlName="username" placeholder="Username">
+                    <span *ngIf="userForm.hasError('required', 'username') && (userForm.controls['username'].dirty || userFormSubmitted)" class="text-red-500">Username is required</span>
+                </div>
+                <div class="h-16 max-w-52" *ngIf="!isEditMode">
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="password" type="password" formControlName="password" placeholder="Password">
+                    <span *ngIf="userForm.hasError('required', 'password') && (userForm.controls['password'].dirty || userFormSubmitted)" class="text-red-500">Password is required</span>
+                    <span class="text-red-500">
+                        <span *ngIf="userForm.hasError('minLengthInvalid', 'password') && !userForm.hasError('required', 'password')" >length 8, </span>
+                        <span *ngIf="userForm.hasError('missingLowercase', 'password') && !userForm.hasError('required', 'password')" >lower, </span>
+                        <span *ngIf="userForm.hasError('missingUppercase', 'password') && !userForm.hasError('required', 'password')" >upper, </span>
+                        <span *ngIf="userForm.hasError('missingNumber', 'password') && !userForm.hasError('required', 'password')" >number, </span>
+                        <span *ngIf="userForm.hasError('missingSpecialCharacter', 'password') && !userForm.hasError('required', 'password')" >special</span>
+                    </span>
+                </div>
+                <div class="h-16 max-w-52" *ngIf="!isEditMode">
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="confirmPassword" type="password" formControlName="confirmPassword" placeholder="Confirm Password">
+                    <span *ngIf="userForm.value.password != userForm.value.confirmPassword" class="text-red-500">Password must match</span>
+                </div>
+                <button class="invisible" type="submit"></button>
+              </form>
+            </div>
+            <div class="sm:w-80 w-52">
+                <app-role-selection (selectedRolesOutput)="handleSelectedRolesOutput($event)"></app-role-selection>
+            </div>
+        </div>
+
+
+        <div class="flex flex-row space-x-5 ">
+            <div class="flex items-center justify-between mt-10">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
+            </div>
+            <div *ngIf="isEditMode" class="flex items-center justify-between mt-10">
+                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="delete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

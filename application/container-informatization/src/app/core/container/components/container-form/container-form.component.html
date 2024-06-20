@@ -1,1 +1,95 @@
-<p>container-form works!</p>
+<div class="w-11/12">
+    <div class="bg-white shadow-sm rounded px-8 pt-6 pb-5 border border-gray-100 hover:shadow-md transition ease-in-out">
+        <h2 class="text-2xl mb-10">{{ isEditMode ? "Container information:" : "Create new container" }}</h2>
+
+        <form [formGroup]="containerForm" (ngSubmit)="onSubmit()">
+
+            <hr class="my-5">
+    
+            <div class="h-16 max-w-52">
+            <input 
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                name="containerNumber" 
+                type="text" 
+                formControlName="containerNumber" 
+                placeholder="Container number">
+            <span
+                *ngIf="containerForm.hasError('required', 'containerNumber') && (containerForm.controls['containerNumber'].dirty || containerFormSubmitted)" 
+                class="text-red-500">
+                Container num required.
+            </span>
+            </div>
+        
+            <div class="h-16 mt-1 max-w-52">
+                <select 
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                  formControlName="size">
+                  <option value="" disabled selected class="text-gray-700">Container size</option>
+                  <option value="0">3m</option>
+                  <option value="1">6m</option>
+                  <option value="2">12m</option>
+                </select>
+                <span
+                *ngIf="(containerForm.hasError('required','size') || containerForm.hasError('invalidSize', 'size')) && (containerForm.controls['size'].dirty || containerFormSubmitted)" 
+                  class="text-red-500">
+                  Size is required.
+                </span>
+            </div>
+        
+            <div class="h-16 mt-1 max-w-52">
+            <input 
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                name="contents" 
+                type="text" 
+                formControlName="contents" 
+                placeholder="Contents">
+            <span
+                *ngIf="containerForm.hasError('required', 'contents') && (containerForm.controls['contents'].dirty || containerFormSubmitted)" 
+                class="text-red-500">
+                Contents are required.
+            </span>
+            </div>
+
+            <div class="h-16 mt-1 max-w-52">
+                <select 
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                  formControlName="storageType">
+                  <option value="" disabled selected class="text-gray-700">Storage type</option>
+                  <option value="2">Normal</option>
+                  <option value="1">Special</option>
+                </select>
+                <span
+                  *ngIf="(containerForm.hasError('required', 'storageType') || containerForm.hasError('invalidStorageType', 'storageType')) && (containerForm.controls['storageType'].dirty || containerFormSubmitted)" 
+                  class="text-red-500">
+                  Storage Type is required.
+                </span>
+            </div>
+
+            <div class="h-16 mt-1 max-w-52">
+            <input 
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                name="weight" 
+                type="text" 
+                formControlName="weight" 
+                placeholder="Container weight">
+            <span
+                *ngIf="containerForm.hasError('required', 'weight') && (containerForm.controls['weight'].dirty || containerFormSubmitted)" 
+                class="text-red-500">
+                Weight is required.
+            </span>
+            </div>
+        
+            <!-- Hidden submit button -->
+            <button class="hidden" type="submit"></button>
+        </form>
+
+        <div class="flex flex-row space-x-5">
+            <div class="flex items-center justify-between mt-10">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
+            </div>
+            <div *ngIf="isEditMode" class="flex items-center justify-between mt-10">
+                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="delete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

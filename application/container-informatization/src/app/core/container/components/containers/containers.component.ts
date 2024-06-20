@@ -35,6 +35,7 @@ export class ContainersComponent implements OnInit{
         containerSize: container.size == 0 ? '3m' : container.size == 1 ? '6m' : '12m',
         containerContents: container.contents,
         StorageType: container.storageType == 1 ? 'Special' : 'Normal',
+        Weight: container.weight,
         Created: container.createdAt,
         Updated: container.updatedAt,
       };

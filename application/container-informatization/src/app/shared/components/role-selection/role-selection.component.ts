@@ -14,6 +14,7 @@ export class RoleSelectionComponent implements OnInit{
     roles!: any[];
     selectedRoles: any = [];
     selectedRolesOutput = output();
+    rolesToAdd: any = [];
     
     
   // Function to toggle role selection
@@ -47,12 +48,28 @@ export class RoleSelectionComponent implements OnInit{
     this.selectedRolesOutput.emit(selectedRoleIds.filter((id: any) => id !== null)); // Filter out null values
   }
 
+  setRoles(roleIds: string[]) {
+    this.rolesToAdd = roleIds;
+  }
+  
+  setSelectedRoles() {
+    this.selectedRoles = [];
+    this.rolesToAdd.forEach((roleId: any) => {
+      const role = this.roles.find(role => role._id === roleId);
+      if (role) {
+        this.selectedRoles.push(role.role);
+      }
+    });
+    this.sendSelectedRoles();
+  }
+
   ngOnInit(): void {
     this.roleService.getRolesService()
     .subscribe({
       next:(res)=>{
         console.log(res);
         this.roles = res.data;
+        this.setSelectedRoles()
       },
       error:(err)=>{
         console.log(err.error.message);

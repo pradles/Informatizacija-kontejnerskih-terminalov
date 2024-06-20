@@ -6,6 +6,7 @@ import { PageDashboardComponent } from './core/dashboard/pages/page-dashboard/pa
 import { PageTerminalComponent } from './core/terminal/pages/page-terminal/page-terminal.component';
 import { PageContainerComponent } from './core/container/pages/page-container/page-container.component';
 import { PageStorageComponent } from './core/storage/pages/page-storage/page-storage.component';
+import { PageUserComponent } from './core/user/pages/page-user/page-user.component';
 import { UserRole } from './core/authentication/services/auth.service';
 import { AuthGuard } from './core/authentication/guard/auth.guard';
 
@@ -34,4 +35,8 @@ export const routes: Routes = [
     { path: 'storage', component: PageStorageComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'storage/:storageId', component: PageStorageComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'all-storages', component: PageStorageComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
+    
+    { path: 'user', component: PageUserComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
+    { path: 'user/:userId', component: PageUserComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
+    { path: 'all-users', component: PageUserComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
 ];

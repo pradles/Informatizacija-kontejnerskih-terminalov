@@ -73,3 +73,24 @@ function removeDuplicatesById(arr) {
   
     return result;
   }
+
+export const updateUser = async (req, res, next) => {
+    try {
+        const userId = req.body._id;
+        const updateData = req.body;
+        const user = await User.findById(userId);
+        if (!user) {
+            return next(CreateError(404, "User not found."));
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateData },
+            { new: true }
+        );
+
+        return next(CreateSuccess(200, "User updated successfully", updatedUser));
+    } catch (error) {
+        return next(CreateError(500, "Error updating user."));
+    }
+}
