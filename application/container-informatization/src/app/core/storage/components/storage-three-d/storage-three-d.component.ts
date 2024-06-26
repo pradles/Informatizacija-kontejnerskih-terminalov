@@ -9,6 +9,8 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import Stats from 'stats.js';
+import * as TWEEN from '@tweenjs/tween.js';
+
 
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
 import { TerminalService } from '../../../../shared/services/api/terminal.service';
@@ -119,6 +121,8 @@ export class StorageThreeDComponent implements AfterViewInit {
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.set(0, 0, 0);
+    this.controls.maxPolarAngle = Math.PI/2-0.05; 
+    // this.controls.enableDamping = true;
     this.controls.update();
 
     const axesHelper = new THREE.AxesHelper(5);
@@ -146,6 +150,7 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.stats.begin();
 
     requestAnimationFrame(() => this.animate());
+    this.controls.target.setY(0);
     this.controls.update();
     this.composer.render();
 
@@ -214,6 +219,54 @@ export class StorageThreeDComponent implements AfterViewInit {
       this.highlightedObjects.clear();
       if (this.selectedContainer) {
         this.highlightedObjects.add(this.selectedContainer);
+
+        // const rayDirection = new THREE.Vector3().subVectors(this.selectedContainer.position, this.camera.position).normalize();
+        // this.raycaster.set(this.camera.position, rayDirection);
+
+        // const rayIntersects = this.raycaster.intersectObjects(this.containerMeshes);
+        // // Reset opacity to 1.0 for all meshes
+        // this.containerMeshes.forEach(mesh => {
+        //   this.setMeshOpacity(mesh, 1.0);
+        // });
+
+        // // Make intersecting meshes semi-transparent
+        // for (let i = 0; i < rayIntersects.length; i++) {
+        //     const intersectedMesh = rayIntersects[i].object;
+        //     if (intersectedMesh !== this.selectedContainer) {
+        //         this.setMeshOpacity(intersectedMesh, 0.2);
+        //     }
+        // }
+
+        const rayDirection = new THREE.Vector3().subVectors(this.selectedContainer.position, this.camera.position).normalize();
+        const rayIntersects = [];
+        
+        // Create additional rays around the main ray direction to simulate a thicker ray
+        const rayDirections = [
+            rayDirection,
+            new THREE.Vector3(rayDirection.x + 0.1, rayDirection.y, rayDirection.z).normalize(), // Example: increase x-axis
+            new THREE.Vector3(rayDirection.x, rayDirection.y + 0.1, rayDirection.z).normalize(), // Example: increase y-axis
+            new THREE.Vector3(rayDirection.x, rayDirection.y, rayDirection.z + 0.1).normalize(), // Example: increase z-axis
+            // Add more directions as needed
+        ];
+        
+        for (let dir of rayDirections) {
+            this.raycaster.set(this.camera.position, dir);
+            rayIntersects.push(...this.raycaster.intersectObjects(this.containerMeshes, false));
+        }
+        
+        // Reset opacity to 1.0 for all meshes
+        this.containerMeshes.forEach(mesh => {
+            this.setMeshOpacity(mesh, 1.0);
+        });
+        
+        // Make intersecting meshes semi-transparent
+        for (let i = 0; i < rayIntersects.length; i++) {
+            const intersectedMesh = rayIntersects[i].object;
+            if (intersectedMesh !== this.selectedContainer) {
+                this.setMeshOpacity(intersectedMesh, 0.2);
+            }
+        }
+
       }
 
       if (intersects.length > 0) {
@@ -221,6 +274,7 @@ export class StorageThreeDComponent implements AfterViewInit {
       }
 
       this.outlinePass.selectedObjects = Array.from(this.highlightedObjects);
+
     } else {
       const intersects = this.raycaster.intersectObject(this.plane);
 
@@ -281,6 +335,7 @@ export class StorageThreeDComponent implements AfterViewInit {
 
     if (this.selectedContainer) {
       this.highlightedObjects.add(this.selectedContainer);
+      this.moveCameraLinear(this.selectedContainer.position)
     }
     this.outlinePass.selectedObjects = Array.from(this.highlightedObjects);
   }
@@ -361,6 +416,14 @@ export class StorageThreeDComponent implements AfterViewInit {
     this.scene.add(rectangleOutline);
   }
 
+  private hashStringToIndex(str: string, arrayLength: number): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash + str.charCodeAt(i)) % arrayLength;
+    }
+    return hash;
+  }
+
   private createContainer(position: { x: number, y: number, z: number }, size: number, accessibility: number, occupation: string): void {
     const modelsForSize = this.loadedModels[size];
     if (!modelsForSize || modelsForSize.length === 0) {
@@ -369,14 +432,13 @@ export class StorageThreeDComponent implements AfterViewInit {
       return;
     }
 
-    // Randomly pick a color
-    const randomIndex = Math.floor(Math.random() * modelsForSize.length);
-    const model = modelsForSize[randomIndex].clone();
+    const modelIndex = this.hashStringToIndex(occupation, modelsForSize.length);
+    const model = modelsForSize[modelIndex].clone();
 
     if (model) {
       const { x, y, z } = position;
       model.position.set(y * 6.75, z * 2.9, x * 2.75);
-      model.userData['containerData'] = { location: position, size, occupation: this.terminalData[x][y][z].occupation, accessibility };
+      model.userData['containerData'] = { location: position, size, occupation, accessibility };
 
       this.scene.add(model);
       this.containerMeshes.push(model);
@@ -407,6 +469,10 @@ export class StorageThreeDComponent implements AfterViewInit {
           console.error('Failed to load models:', error);
         });
       } else {
+        console.log(position)
+        console.log(size)
+        console.log(accessibility)
+        console.log(typeof occupation)
         this.createContainer(position, size, accessibility, occupation);
         this.storageFormService.setPosition({ x: position.x, y: position.y, z: position.z });
       }
@@ -552,4 +618,73 @@ export class StorageThreeDComponent implements AfterViewInit {
      gridY = this.locationService.checkMoveLocation(this.terminalData, this.currentPosition, {x:gridZ, y:gridX, z:0},  this.terminalData[this.currentPosition.x][this.currentPosition.y][this.currentPosition.z].size, this.terminalData[this.currentPosition.x][this.currentPosition.y][this.currentPosition.z].accessibility)
     return new THREE.Vector3(gridX * 6.75, gridY*2.9, gridZ * 2.75);
   }
+
+  setMeshOpacity(mesh: any, opacity: number): void {
+    // Clone the material if it hasn't been already
+    if (mesh.material instanceof THREE.Material) {
+        // Check if the material is shared
+        if (!mesh.userData['materialCloned']) {
+            mesh.material = mesh.material.clone();
+            mesh.userData['materialCloned'] = true;
+        }
+        
+        if (!mesh.material.transparent) {
+            mesh.material.transparent = true;
+        }
+        mesh.material.opacity = opacity;
+
+    } else if (Array.isArray(mesh.material)) {
+        // If the mesh has an array of materials, clone each one if it hasn't been already
+        if (!mesh.userData['materialCloned']) {
+            mesh.material = mesh.material.map((material: THREE.Material) => material.clone());
+            mesh.userData['materialCloned'] = true;
+        }
+        
+        mesh.material.forEach((material: THREE.Material) => {
+            if (!material.transparent) {
+                material.transparent = true;
+            }
+            material.opacity = opacity;
+        });
+    }
+  }
+
+
+  moveCameraLinear(targetPosition: THREE.Vector3, duration: number = 400) {
+    const startPosition = this.camera.position.clone();
+    const startTarget = this.controls.target.clone();
+    const targetTarget = new THREE.Vector3(
+        targetPosition.x,
+        startTarget.y,  // Keep the same y-level for the target to maintain the camera height
+        targetPosition.z
+    );
+
+    // Calculate the direction vector for the target movement
+    const targetMovement = new THREE.Vector3().subVectors(targetTarget, startTarget);
+
+    const tween = new TWEEN.Tween({ t: 0 })
+        .to({ t: 1 }, duration)
+        .onUpdate(({ t }) => {
+            // Move the camera target
+            const newTarget = new THREE.Vector3().lerpVectors(startTarget, targetTarget, t);
+            this.controls.target.copy(newTarget);
+
+            // Apply the same movement vector to the camera position
+            const newPos = startPosition.clone().add(targetMovement.clone().multiplyScalar(t));
+            this.camera.position.copy(newPos);
+
+            this.controls.update();
+        })
+        .start();
+
+    // Animate using TWEEN
+    function animate(time: number) {
+        requestAnimationFrame(animate);
+        TWEEN.update(time);
+    }
+
+    requestAnimationFrame(animate);
+}
+
+  
 }

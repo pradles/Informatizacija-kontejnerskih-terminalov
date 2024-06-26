@@ -51,7 +51,6 @@ export class StorageFormComponent implements OnInit {
   containerForm!: FormGroup;
   storageId: string | null = null;
   isEditMode: boolean = false;
-  toggleInput: boolean = false;
   loading: boolean = false;
 
   currentPosition!: { x: number | null, y: number | null, z: number | null };
@@ -169,11 +168,6 @@ export class StorageFormComponent implements OnInit {
     const minutes = ('0' + date.getMinutes()).slice(-2); // Adding leading zero
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
-  }
-
-  // Toggle the input form
-  toggleInputForm() {
-    this.toggleInput = !this.toggleInput
   }
 
   onSearch(): void {
@@ -413,6 +407,7 @@ export class StorageFormComponent implements OnInit {
   checkPosition() {
     if (this.storageForm.value.currentlyStoredAtX != null && this.storageForm.value.currentlyStoredAtY != null && this.storageForm.value.currentlyStoredAtZ != null) {
       if (this.currentPosition.x == null || this.currentPosition.y == null || this.currentPosition.z == null) {
+        console.log("beki")
         this.storageThreeD.addContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ }, this.containerForm.value.size, this.containerForm.value.storageType, this.singleStorageData?._id); // Check if it's possible to place if it is set it there update currentPosition
       } else {
         this.storageThreeD.moveContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ });
