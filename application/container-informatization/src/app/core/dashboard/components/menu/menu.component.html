@@ -71,6 +71,9 @@
                <li routerLink="/all-containers" class="cursor-pointer flex items-center w-full p-2 text-gray-900 duration-75 rounded-lg pl-8 group hover:bg-gray-100 transition ease-in-out delay-75">
                  <div>Containers</div>
                </li>
+               <li routerLink="/all-owners" class="cursor-pointer flex items-center w-full p-2 text-gray-900 duration-75 rounded-lg pl-8 group hover:bg-gray-100 transition ease-in-out delay-75">
+                 <div>Owners</div>
+               </li>
             </ul>
 
             <button *ngIf="hasPermissionAdmin" type="button" class="flex items-center w-full p-2 text-base text-gray-900 duration-75 rounded-lg group hover:bg-gray-100 transition ease-in-out delay-75" (click)="toggleAdminDropdown()">

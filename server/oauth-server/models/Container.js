@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, {Schema} from "mongoose";
 
 const ContainerSchema = mongoose.Schema(
     {
@@ -25,7 +25,12 @@ const ContainerSchema = mongoose.Schema(
         weight: {
             type: Number,
             required: true,
-        }
+        },
+        ownerId: {
+            type: [Schema.Types.ObjectId],
+            ref: "Owner",
+            required: true,
+          },
     },
     {
         timestamps: true

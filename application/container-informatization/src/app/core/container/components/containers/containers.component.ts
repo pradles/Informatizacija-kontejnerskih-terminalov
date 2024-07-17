@@ -32,6 +32,7 @@ export class ContainersComponent implements OnInit{
       return {
         _id: container._id,
         ContainerNumber: container.containerNumber,
+        containerOwner: container.ownerId[0]?.name,
         containerSize: container.size == 0 ? '3m' : container.size == 1 ? '6m' : '12m',
         containerContents: container.contents,
         StorageType: container.storageType == 1 ? 'Special' : 'Normal',

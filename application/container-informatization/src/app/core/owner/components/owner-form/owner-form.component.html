@@ -1,0 +1,22 @@
+<div class="w-11/12">
+    <div class="bg-white shadow-sm rounded px-8 pt-6 pb-5 border border-gray-100 hover:shadow-md transition ease-in-out">
+        <h2 class="text-2xl mb-10">{{ isEditMode ? "Owner information:" : "Create new owner" }}</h2>
+
+        <form [formGroup]="ownerForm" (ngSubmit)="onSubmit()">
+            <div class="h-16 max-w-52">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="name" type="text" formControlName="name" placeholder="Owner name">
+                <span *ngIf="ownerForm.hasError('required', 'name') && (ownerForm.controls['name'].dirty || ownerFormSubmitted)" class="text-red-500">Name is required</span>
+            </div>
+            <button class="hidden" type="submit"></button>
+        </form>
+        <div class="flex flex-row space-x-5">
+            <div class="flex items-center justify-between mt-10">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
+            </div>
+            <div *ngIf="isEditMode" class="flex items-center justify-between mt-10">
+                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="delete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+  

@@ -1,0 +1,9 @@
+<div class="min-h-screen bg-[#fffbfb] p-5">
+    <app-menu></app-menu>
+    <div class="sm:ml-[16rem] ml-4">
+        <app-owner-form *ngIf="isCurrentRoute('/owner')"></app-owner-form>
+        <app-owners *ngIf="isCurrentRoute('/all-owners')"></app-owners>
+    </div>
+
+    <app-error-modal [isOpen]="isErrorModalOpen" [title]="errorModalTitle" [text]="errorModalText" (closeModalEvent)="isErrorModalOpen = false"></app-error-modal>
+</div>

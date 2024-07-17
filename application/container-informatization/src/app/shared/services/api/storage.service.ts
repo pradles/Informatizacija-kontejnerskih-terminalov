@@ -21,6 +21,7 @@ export class StorageService {
   }
 
   updateStorageRecords(storageObj: any) {
+    console.log("storage obj:")
     console.log(storageObj)
     return this.http.put<any>(`${apiUrls.StorageServiceApi}update`, storageObj, {withCredentials:true} );
   }

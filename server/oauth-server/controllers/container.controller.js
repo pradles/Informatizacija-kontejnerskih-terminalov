@@ -1,15 +1,23 @@
 import Container from '../models/Container.js';
+import Owner from '../models/Owners.js';
 import { CreateSuccess } from '../utils/success.js';
 import { CreateError } from '../utils/error.js';
 
 export const addContainer = async (req, res, next)=>{
     try {
+        const owner = await Owner.findById(req.body.ownerId);
+        
+        if (!owner) {
+            return next(CreateError(404, "Owner not found"));
+        }
+
         const newContainer = new Container({
             containerNumber: req.body.containerNumber,
             size: req.body.size,
             contents: req.body.contents,
             storageType: req.body.storageType,
-            weight: req.body.weight
+            weight: req.body.weight,
+            ownerId: req.body.ownerId
         });
         const savedContainer = await newContainer.save();
         return next(CreateSuccess(200, `Container added successfully. Container ID:${savedContainer._id}`));
@@ -37,7 +45,7 @@ export const updateContainer = async (req, res, next) => {
 
 export const getAllContainers = async (req, res, next)=>{
     try {
-        const containers = await Container.find();
+        const containers = await Container.find().populate('ownerId');
         return next(CreateSuccess(200, "Returned containers", containers))
     } catch (error) {
         return next(CreateError(500, "Error getting containers."));
@@ -46,7 +54,7 @@ export const getAllContainers = async (req, res, next)=>{
 
 export const getContainerById = async (req, res, next)=>{
     try {
-        const container = await Container.findById({_id: req.params.id});
+        const container = await Container.findById({_id: req.params.id}).populate('ownerId');
         if(container) 
             return next(CreateSuccess(200, "Returned container by id", container));
         return next(CreateError(404, "Container not found."));

@@ -192,19 +192,6 @@ export class StorageThreeDComponent implements AfterViewInit {
     event.preventDefault();
     
     this.onMoving();
-  
-    // // Perform your logic for double-click here
-    // const rect = this.renderer.domElement.getBoundingClientRect();
-    // this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    // this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-  
-    // this.raycaster.setFromCamera(this.mouse, this.camera);
-    // const intersects = this.raycaster.intersectObjects(this.containerMeshes);
-  
-    // // Example: log information about double-clicked objects
-    // if (intersects.length > 0) {
-    //   console.log('Double-clicked object:', intersects[0].object);
-    // }
   }
 
   private onMouseMove(event: MouseEvent): void {
@@ -243,10 +230,9 @@ export class StorageThreeDComponent implements AfterViewInit {
         // Create additional rays around the main ray direction to simulate a thicker ray
         const rayDirections = [
             rayDirection,
-            new THREE.Vector3(rayDirection.x + 0.1, rayDirection.y, rayDirection.z).normalize(), // Example: increase x-axis
-            new THREE.Vector3(rayDirection.x, rayDirection.y + 0.1, rayDirection.z).normalize(), // Example: increase y-axis
-            new THREE.Vector3(rayDirection.x, rayDirection.y, rayDirection.z + 0.1).normalize(), // Example: increase z-axis
-            // Add more directions as needed
+            new THREE.Vector3(rayDirection.x + 0.01, rayDirection.y, rayDirection.z).normalize(), // Example: increase x-axis
+            new THREE.Vector3(rayDirection.x, rayDirection.y + 0.01, rayDirection.z).normalize(), // Example: increase y-axis
+            new THREE.Vector3(rayDirection.x, rayDirection.y, rayDirection.z + 0.01).normalize(), // Example: increase z-axis
         ];
         
         for (let dir of rayDirections) {

@@ -19,6 +19,32 @@
                 Container num required.
             </span>
             </div>
+
+            <div class="h-16 max-w-52">
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="containerOwner" 
+                    type="text" 
+                    formControlName="containerOwner" 
+                    placeholder="Search or Enter Container owner"
+                    (input)="onSearchContainerOwner()"
+                    (focus)="onFocusDropdownContainerOwner()"
+                    (blur)="onBlurDropdownContainerOwner()"/>
+              
+                <div *ngIf="filteredOwnerId.length > 0 && ownerIdDropdown" class="bg-white border rounded min-w-52 py-2 px-3 absolute">
+                    <ul>
+                    <li *ngFor="let item of filteredOwnerId" (click)="selectItemContainerOwner(item.name)" class="cursor-pointer rounded-md hover:bg-gray-200 py-1 px-2">
+                        {{ item.name }}
+                    </li>
+                    </ul>
+                </div>
+              
+                <span
+                    *ngIf="containerForm.hasError('required', 'containerOwner') && (containerForm.controls['containerOwner'].dirty || containerFormSubmitted)" 
+                    class="text-red-500">
+                    Container owner required.
+                </span>
+            </div>
         
             <div class="h-16 mt-1 max-w-52">
                 <select 

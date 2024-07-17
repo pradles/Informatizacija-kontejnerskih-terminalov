@@ -5,4 +5,5 @@ export const apiUrls = {
     UserServiceApi: 'http://localhost:3000/api/user/',
     StorageServiceApi: 'http://localhost:3000/api/storage/',
     ContainerServiceApi: 'http://localhost:3000/api/container/',
+    OwnerServiceApi: 'http://localhost:3000/api/owner/',
 }

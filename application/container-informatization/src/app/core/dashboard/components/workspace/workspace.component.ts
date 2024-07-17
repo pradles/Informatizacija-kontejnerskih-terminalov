@@ -42,9 +42,9 @@ export class DetailsComponent implements OnInit{
     return arr.map((storage: any) => {
       const container = storage.containerId[0];
       const terminal = storage.terminalId[0];
-  
       return {
         ContainerNumber: container.containerNumber,
+        Owner: container.ownerId[0]?.name,
         containerSize: container.size == 0 ? '3m' : container.size == 1 ? '6m' : '12m',
         containerLocation: `${storage.currentlyStoredAt?.x !== undefined ? storage.currentlyStoredAt.x : ""} 
                             ${storage.currentlyStoredAt?.y !== undefined ? storage.currentlyStoredAt.y : ""} 

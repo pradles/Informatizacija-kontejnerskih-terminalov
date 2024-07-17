@@ -6,6 +6,7 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { StorageService } from '../../../../shared/services/api/storage.service';
 import { ContainerService } from '../../../../shared/services/api/container.service';
 import { TerminalService } from '../../../../shared/services/api/terminal.service';
+import { OwnerService } from '../../../../shared/services/api/owner.service';
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
 import { ValidatorsServiceService } from '../../../authentication/services/validators.service.service';
 import { StorageFormService } from '../../services/storage-form.service';
@@ -33,16 +34,21 @@ export class StorageFormComponent implements OnInit {
   dashboardService = inject(DashboardService);
   pageStorage = inject(PageStorageComponent);
   storageFormService = inject(StorageFormService);
+  ownerService = inject(OwnerService);
 
   storageData: any;
   singleStorageData: any;
   updated: boolean = false;
 
-  // for dropdown
+  // for dropdown container number
   storageNumberId: { label: string, value: string }[] = [];
   filteredStorageNumberId: { label: string, value: string }[] = [];
   storageNumberIdDropdown: boolean = false;
 
+  // for dropdown owner number
+  ownerId: { _id: string, name: string }[] = [];
+  filteredOwnerId: { _id: string, name: string }[] = [];
+  ownerIdDropdown: boolean = false;
 
   storageDataToUpdate: { container: any, containerId: string, storage: any, storageId: string }[] = [];
 
@@ -71,6 +77,7 @@ export class StorageFormComponent implements OnInit {
     // Initialize the container form with default values and validators
     this.containerForm = this.fb.group({
       containerNumber: ['', Validators.required],
+      containerOwner: ['', Validators.required],
       size: [null, [Validators.required, this.validatorService.allowedSizesValidator([0, 1, 2])]],
       contents: ['', Validators.required],
       storageType: [null, [Validators.required, this.validatorService.allowedStorageTypesValidator([1, 2])]],
@@ -100,6 +107,7 @@ export class StorageFormComponent implements OnInit {
         this.storageFormService.setPosition({ x: null, y: null, z: null });
       }
     });
+    this.populateContainerOwners();
   }
 
   // Load data when in edit mode
@@ -132,6 +140,7 @@ export class StorageFormComponent implements OnInit {
   // Load storage data by ID
   loadStorageData(id: string): void {
     this.storageNumberId = [];
+
     // <==================================================================== TLE RABMO SHRANT V this.storageData trenutnu stanje form-a -> lohk porabmo tudi za on submit
     // kdr updatmo porabmo sam tu, zravn lohk nrdimo se en ekstra variable al je blu spremenjenu al ne (true/false), da vidmo ce rabmo slpoh updejtt;
     this.storageForm.reset();
@@ -157,6 +166,21 @@ export class StorageFormComponent implements OnInit {
     this.filteredStorageNumberId = this.storageNumberId;
   }
 
+  populateContainerOwners() {
+    // Set up all owners for dropdown
+    this.ownerService.getAllOwners().subscribe({
+      next: (owners) => {
+        this.ownerId = owners.data
+        this.filteredOwnerId = this.ownerId;
+        console.log(this.filteredOwnerId)
+      },
+      error: (err) => {
+        console.log(err);
+        this.pageStorage.openErrorModal(err.error.message);
+      }
+    });
+  }
+
   // Format date to ISO string format
   formatDate(dateString: string): string {
     if (!dateString) return '';
@@ -170,25 +194,47 @@ export class StorageFormComponent implements OnInit {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
-  onSearch(): void {
+  onSearchContainerNumber(): void {
     this.filteredStorageNumberId = this.storageNumberId.filter(item =>
       item.label.toString().includes(this.containerForm.value.containerNumber.toLowerCase())
     );
   }
 
-  selectItem(item: { label: string, value: string }): void {
+  selectItemContainerNumber(item: { label: string, value: string }): void {
     this.changeStorageData(item.value);
     console.log(item);
   }
 
-  onFocusDropdown(): void {
+  onFocusDropdownContainerNumber(): void {
     this.storageNumberIdDropdown = true;
   }
 
-  onBlurDropdown(): void {
+  onBlurDropdownContainerNumber(): void {
     setTimeout(() => 
       {
         this.storageNumberIdDropdown = false;
+      },
+      120);
+  }
+  
+  onSearchContainerOwner(): void {
+    this.filteredOwnerId = this.ownerId.filter(item =>
+      item.name.toString().includes(this.containerForm.value.containerOwner.toLowerCase())
+    );
+  }
+
+  selectItemContainerOwner(ownerName: string): void {
+    this.containerForm.patchValue({containerOwner: ownerName});
+  }
+
+  onFocusDropdownContainerOwner(): void {
+    this.ownerIdDropdown = true;
+  }
+
+  onBlurDropdownContainerOwner(): void {
+    setTimeout(() => 
+      {
+        this.ownerIdDropdown = false;
       },
       120);
   }
@@ -247,6 +293,7 @@ export class StorageFormComponent implements OnInit {
         containerId: storage.containerId.map((container: any) => ({
           _id: container._id,
           containerNumber: container.containerNumber,
+          ownerId: this.ownerId.find(o => o.name === container.containerOwner)?._id,
           size: container.size,
           contents: container.contents,
           storageType: container.storageType,
@@ -287,6 +334,7 @@ export class StorageFormComponent implements OnInit {
   createMode() {
     const containerObj = {
       containerNumber: this.containerForm.value.containerNumber,
+      ownerId: this.ownerId.find(o => o.name === this.containerForm.value.containerOwner)?._id,
       size: this.containerForm.value.size,
       contents: this.containerForm.value.contents,
       storageType: this.containerForm.value.storageType,
@@ -385,7 +433,8 @@ export class StorageFormComponent implements OnInit {
       this.storageData[updatedStorageIndex] = formattedData;
     }
     this.updated = false;
-    // console.log(this.storageData);
+    console.log("Storage data:")
+    console.log(this.storageData);
   }
 
   // Change the URL to reflect the new storage ID without triggering a reload

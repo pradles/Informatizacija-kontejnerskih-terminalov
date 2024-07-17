@@ -39,18 +39,33 @@ export const createStorageRecord = async (req, res, next)=>{
     }
 }
 
-export const getAllStorageRecords = async (req, res, next)=>{
+export const getAllStorageRecords = async (req, res, next) => {
     try {
-        const storageRecords = await Storage.find().populate('containerId').populate('terminalId');
+        const storageRecords = await Storage.find()
+            .populate({
+                path: 'containerId',
+                populate: {
+                    path: 'ownerId'
+                }
+            })
+            .populate('terminalId');
+
         return next(CreateSuccess(200, "Returned all storage records", storageRecords));
     } catch (error) {
         return next(CreateError(500, "Error fetching storage records."));
     }
-}
+};
 
 export const getStorageRecordsById = async (req, res, next)=>{
     try {
-        const storageRecord = await Storage.findById(req.params.id).populate('containerId').populate('terminalId');
+        const storageRecord = await Storage.findById(req.params.id)
+            .populate({
+                path: 'containerId',
+                populate: {
+                    path: 'ownerId'
+                }
+            })
+            .populate('terminalId');
         return next(CreateSuccess(200, "Returned storage record by id", storageRecord));
     } catch (error) {
         return next(CreateError(500, "Error fetching storage record by id."));
@@ -71,7 +86,14 @@ export const getTerminalStorageRecords = async (req, res, next) => {
       }
   
       // Fetch storage records for the specific terminal
-      const storageRecords = await Storage.find({ terminalId }).populate('containerId').populate('terminalId');
+      const storageRecords = await Storage.find({ terminalId })
+        .populate({
+            path: 'containerId',
+            populate: {
+                path: 'ownerId'
+            }
+            })
+        .populate('terminalId');
       return next(CreateSuccess(200, "Returned terminal storage records", storageRecords));
     } catch (error) {
       return next(CreateError(500, "Error fetching terminal storage records."));
