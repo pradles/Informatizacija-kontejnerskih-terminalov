@@ -159,6 +159,7 @@ export class StorageFormComponent implements OnInit {
         }
         this.storageForm.patchValue(formattedData);
         this.containerForm.patchValue(storage.containerId[0]);
+        this.containerForm.patchValue({containerOwner: storage.containerId[0].ownerId[0]?.name});
         this.updatePosition(storage.currentlyStoredAt ? storage.currentlyStoredAt : { x: null, y: null, z: null });
       }
       this.storageNumberId.push({label: storage.containerId[0].containerNumber, value: storage._id})

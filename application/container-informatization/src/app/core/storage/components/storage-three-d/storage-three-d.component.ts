@@ -207,44 +207,15 @@ export class StorageThreeDComponent implements AfterViewInit {
       if (this.selectedContainer) {
         this.highlightedObjects.add(this.selectedContainer);
 
-        // const rayDirection = new THREE.Vector3().subVectors(this.selectedContainer.position, this.camera.position).normalize();
-        // this.raycaster.set(this.camera.position, rayDirection);
-
-        // const rayIntersects = this.raycaster.intersectObjects(this.containerMeshes);
-        // // Reset opacity to 1.0 for all meshes
-        // this.containerMeshes.forEach(mesh => {
-        //   this.setMeshOpacity(mesh, 1.0);
-        // });
-
-        // // Make intersecting meshes semi-transparent
-        // for (let i = 0; i < rayIntersects.length; i++) {
-        //     const intersectedMesh = rayIntersects[i].object;
-        //     if (intersectedMesh !== this.selectedContainer) {
-        //         this.setMeshOpacity(intersectedMesh, 0.2);
-        //     }
-        // }
-
         const rayDirection = new THREE.Vector3().subVectors(this.selectedContainer.position, this.camera.position).normalize();
-        const rayIntersects = [];
-        
-        // Create additional rays around the main ray direction to simulate a thicker ray
-        const rayDirections = [
-            rayDirection,
-            new THREE.Vector3(rayDirection.x + 0.01, rayDirection.y, rayDirection.z).normalize(), // Example: increase x-axis
-            new THREE.Vector3(rayDirection.x, rayDirection.y + 0.01, rayDirection.z).normalize(), // Example: increase y-axis
-            new THREE.Vector3(rayDirection.x, rayDirection.y, rayDirection.z + 0.01).normalize(), // Example: increase z-axis
-        ];
-        
-        for (let dir of rayDirections) {
-            this.raycaster.set(this.camera.position, dir);
-            rayIntersects.push(...this.raycaster.intersectObjects(this.containerMeshes, false));
-        }
-        
+        this.raycaster.set(this.camera.position, rayDirection);
+
+        const rayIntersects = this.raycaster.intersectObjects(this.containerMeshes);
         // Reset opacity to 1.0 for all meshes
         this.containerMeshes.forEach(mesh => {
-            this.setMeshOpacity(mesh, 1.0);
+          this.setMeshOpacity(mesh, 1.0);
         });
-        
+
         // Make intersecting meshes semi-transparent
         for (let i = 0; i < rayIntersects.length; i++) {
             const intersectedMesh = rayIntersects[i].object;
@@ -252,6 +223,35 @@ export class StorageThreeDComponent implements AfterViewInit {
                 this.setMeshOpacity(intersectedMesh, 0.2);
             }
         }
+
+        // const rayDirection = new THREE.Vector3().subVectors(this.selectedContainer.position, this.camera.position).normalize();
+        // const rayIntersects = [];
+        
+        // // Create additional rays around the main ray direction to simulate a thicker ray
+        // const rayDirections = [
+        //     rayDirection,
+        //     new THREE.Vector3(rayDirection.x + 0.01, rayDirection.y, rayDirection.z).normalize(), // Example: increase x-axis
+        //     new THREE.Vector3(rayDirection.x, rayDirection.y + 0.01, rayDirection.z).normalize(), // Example: increase y-axis
+        //     new THREE.Vector3(rayDirection.x, rayDirection.y, rayDirection.z + 0.01).normalize(), // Example: increase z-axis
+        // ];
+        
+        // for (let dir of rayDirections) {
+        //     this.raycaster.set(this.camera.position, dir);
+        //     rayIntersects.push(...this.raycaster.intersectObjects(this.containerMeshes, false));
+        // }
+        
+        // // Reset opacity to 1.0 for all meshes
+        // this.containerMeshes.forEach(mesh => {
+        //     this.setMeshOpacity(mesh, 1.0);
+        // });
+        
+        // // Make intersecting meshes semi-transparent
+        // for (let i = 0; i < rayIntersects.length; i++) {
+        //     const intersectedMesh = rayIntersects[i].object;
+        //     if (intersectedMesh !== this.selectedContainer) {
+        //         this.setMeshOpacity(intersectedMesh, 0.2);
+        //     }
+        // }
 
       }
 
