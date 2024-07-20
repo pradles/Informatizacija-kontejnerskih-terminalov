@@ -10,6 +10,7 @@ import { OwnerService } from '../../../../shared/services/api/owner.service';
 import { DashboardService } from '../../../dashboard/services/dashboard.service';
 import { ValidatorsServiceService } from '../../../authentication/services/validators.service.service';
 import { StorageFormService } from '../../services/storage-form.service';
+import { AutoLocateService } from '../../../../shared/services/api/auto-locate.service';
 
 import { PageStorageComponent } from '../../pages/page-storage/page-storage.component';
 import { StorageThreeDComponent } from '../storage-three-d/storage-three-d.component';
@@ -35,6 +36,7 @@ export class StorageFormComponent implements OnInit {
   pageStorage = inject(PageStorageComponent);
   storageFormService = inject(StorageFormService);
   ownerService = inject(OwnerService);
+  autoLocate = inject(AutoLocateService);
 
   storageData: any;
   singleStorageData: any;
@@ -50,7 +52,7 @@ export class StorageFormComponent implements OnInit {
   filteredOwnerId: { _id: string, name: string }[] = [];
   ownerIdDropdown: boolean = false;
 
-  storageDataToUpdate: { container: any, containerId: string, storage: any, storageId: string }[] = [];
+  storageDataToUpdate: { container: any, containerId: string, storage: any, storageId: string, ownerId: any }[] = [];
 
   formSubmitted: boolean = false;
   storageForm!: FormGroup;
@@ -117,8 +119,11 @@ export class StorageFormComponent implements OnInit {
         if (selectedTerminal && selectedTerminal.id) {
           this.storageService.getTerminalStorageRecords(selectedTerminal.id).subscribe({
             next: (res) => {
+              console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+              
               console.log(res);
               this.storageData = res.data;
+              console.log(this.storageData)
               if (this.storageId) {
                 this.loadStorageData(this.storageId);
               }
@@ -145,6 +150,8 @@ export class StorageFormComponent implements OnInit {
     // kdr updatmo porabmo sam tu, zravn lohk nrdimo se en ekstra variable al je blu spremenjenu al ne (true/false), da vidmo ce rabmo slpoh updejtt;
     this.storageForm.reset();
     this.containerForm.reset();
+    console.log("!!!!!!!!!!!")
+    console.log(this.storageData)
     this.storageData.forEach((storage: any) => {
       if (storage._id == id) {
         this.singleStorageData = storage;
@@ -159,7 +166,8 @@ export class StorageFormComponent implements OnInit {
         }
         this.storageForm.patchValue(formattedData);
         this.containerForm.patchValue(storage.containerId[0]);
-        this.containerForm.patchValue({containerOwner: storage.containerId[0].ownerId[0]?.name});
+        console.log(storage.containerId[0])
+        this.containerForm.patchValue({containerOwner: storage.containerId[0]?.ownerId[0]?.name});
         this.updatePosition(storage.currentlyStoredAt ? storage.currentlyStoredAt : { x: null, y: null, z: null });
       }
       this.storageNumberId.push({label: storage.containerId[0].containerNumber, value: storage._id})
@@ -414,6 +422,7 @@ export class StorageFormComponent implements OnInit {
   // Save current storage data to the update queue
   saveStorageData() {
     const updatedStorageIndex = this.storageData.findIndex((storage: any) => storage._id === this.singleStorageData._id);
+    const owner = this.storageData[updatedStorageIndex].containerId[0].ownerId
     if (updatedStorageIndex !== -1) {
       const formattedData = {
         ...this.storageData[updatedStorageIndex],
@@ -427,6 +436,7 @@ export class StorageFormComponent implements OnInit {
         dateScheduledForExport: this.storageForm.value.dateScheduledForExport,
         containerId: [{
           _id: this.storageData[updatedStorageIndex].containerId[0]._id, // Preserve the _id
+          ownerId: owner,
           ...this.containerForm.value
         }],
         updated: this.updated // Check if anything changed
@@ -436,6 +446,37 @@ export class StorageFormComponent implements OnInit {
     this.updated = false;
     console.log("Storage data:")
     console.log(this.storageData);
+  }
+
+  // Auto locate
+  autoLocateStorage() {
+    if (this.containerForm.valid && this.storageForm.valid) {
+      const autoLocateObj = {
+        terminalId: this.dashboardService.getSelectedTerminalMenu().id,
+        containers: [
+          {
+          size: this.containerForm.value.size, 
+          storageType: this.containerForm.value.storageType,
+          dateScheduledForExport: this.storageForm.value.dateScheduledForExport,
+          owner: this.containerForm.value.containerOwner,
+          currentPosition: this.currentPosition
+          }
+        ]
+      }
+
+      this.autoLocate.autoLocate(autoLocateObj).subscribe({
+        next: (res) => {
+          console.log(res)
+        },
+        error: (err) => {
+          console.log(err);
+          this.pageStorage.openErrorModal(err.error.message);
+        }
+      });
+
+    } else {
+      this.pageStorage.openErrorModal("Fill in the form correctly.");
+    }
   }
 
   // Change the URL to reflect the new storage ID without triggering a reload

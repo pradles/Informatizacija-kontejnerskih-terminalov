@@ -592,7 +592,6 @@ export class StorageThreeDComponent implements AfterViewInit {
     // Remove .mesh property from the copied data
     removeMeshProperty(terminalDataCopy);
 
-    console.log(terminalDataCopy);
     return terminalDataCopy;
   }
 

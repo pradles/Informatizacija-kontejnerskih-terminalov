@@ -30,6 +30,7 @@ export class TerminalService {
   }
 
   updateTerminal(terminalObj: any) {
+    console.log(terminalObj)
     return this.http.put<any>(`${apiUrls.TerminalServiceApi}update`, terminalObj, {withCredentials:true} );
   }
 

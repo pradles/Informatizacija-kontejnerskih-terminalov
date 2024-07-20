@@ -17,6 +17,10 @@ const Terminal = mongoose.Schema(
             type: String,
             required: true,
         },
+        owner: {
+            type: String,
+            required: false
+        },
         array3D: {
             type: [[[CellSchema]]], 
             required: true

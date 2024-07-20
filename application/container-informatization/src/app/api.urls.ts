@@ -6,4 +6,5 @@ export const apiUrls = {
     StorageServiceApi: 'http://localhost:3000/api/storage/',
     ContainerServiceApi: 'http://localhost:3000/api/container/',
     OwnerServiceApi: 'http://localhost:3000/api/owner/',
+    autoLocateApi: 'http://localhost:3000/api/autoLocate/',
 }

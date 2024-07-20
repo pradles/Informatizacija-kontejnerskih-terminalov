@@ -9,6 +9,7 @@ import terminalRoute from './routes/terminal.js';
 import containerRoute from './routes/container.js';
 import storageRoute from './routes/storage.js';
 import ownerRoute from './routes/owner.js'
+import autoLocateRoute from './routes/autoLocate.js'
 import { CreateError } from './utils/error.js';
 import cookieParser from 'cookie-parser';
 
@@ -28,6 +29,7 @@ app.use("/api/terminal", terminalRoute);
 app.use("/api/container", containerRoute);
 app.use("/api/storage", storageRoute);
 app.use("/api/owner", ownerRoute);
+app.use("/api/autoLocate", autoLocateRoute);
 
 
 // Response handler middleware
