@@ -1,15 +1,9 @@
-import Container from '../models/Container.js';
-import Owner from '../models/Owners.js';
 import Terminal from '../models/Terminal.js';
-import Storage from '../models/Storage.js';
 import { CreateSuccess } from '../utils/success.js';
 import { CreateError } from '../utils/error.js';
 
 export const autoLocate = async (req, res, next) => {
     try {
-        console.log(req.body.terminalId);
-        console.log(req.body.containers);
-
         const terminalId = req.body.terminalId;
 
         // Ensure the terminal exists
@@ -41,7 +35,7 @@ export const autoLocate = async (req, res, next) => {
 
 function findBestLocation(storageData, size, accessibility, ownerId, dateScheduledForExport, currentPosition) {
     let bestLocation = null;
-    let earliestExportDate = null;
+    let currentScore = null;
     for (let x = 0; x < storageData.length; x++) {
         for (let y = 0; y < storageData[x].length; y++) {
             for (let z = 0; z < storageData[x][y].length; z++) {
@@ -57,11 +51,11 @@ function findBestLocation(storageData, size, accessibility, ownerId, dateSchedul
                 const ownerClusterScore = calculateOwnerClusterScore(storageData, location, ownerId);
                 
                 // Check export date conflicts
-                const exportDateConflict = checkExportDateConflict(storageData, location, dateScheduledForExport);
+                const exportDateScore = calculateExportDateScore(storageData, location, dateScheduledForExport);
                 
                 // Determine if this is a better location
-                if (!exportDateConflict && (earliestExportDate === null || cell.dateScheduledForExport < earliestExportDate || ownerClusterScore > 0)) {
-                    earliestExportDate = cell.dateScheduledForExport;
+                if (currentScore == null || currentScore < (ownerClusterScore + exportDateScore)) {
+                    currentScore = ownerClusterScore + exportDateScore;
                     bestLocation = location;
                 }
             }
@@ -74,7 +68,7 @@ function findBestLocation(storageData, size, accessibility, ownerId, dateSchedul
 function calculateOwnerClusterScore(storageData, location, owner) {
     const { x, y, z } = location;
     let score = 0;
-
+    
     // Check surrounding cells for the same owner
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
@@ -87,32 +81,35 @@ function calculateOwnerClusterScore(storageData, location, owner) {
 
                 if (storageData[nx] && storageData[nx][ny] && storageData[nx][ny][nz]) {
                     const neighborCell = storageData[nx][ny][nz];
-                    if (neighborCell.occupation && neighborCell.occupation.containerId?.ownerId?.name == owner) {
+                    if (neighborCell.occupation && neighborCell.occupation?.containerId[0].ownerId[0].name == owner) {
                         score++;
                     }
                 }
             }
         }
     }
-
+    // if(score != 0)
+    //     console.log("("+x+", "+y+", "+z+") : "+score)
     return score;
 }
 
-function checkExportDateConflict(storageData, location, dateScheduledForExport) {
+function calculateExportDateScore(storageData, location, dateScheduledForExport) {
     const { x, y, z } = location;
+    let score = 0;
 
     // Check the export dates of the cells below the current cell
     for (let dz = 0; dz < z; dz++) {
         const cellBelow = storageData[x][y][dz];
         if (cellBelow && cellBelow.occupation && cellBelow.occupation.dateScheduledForExport) {
             const exportDateBelow = new Date(cellBelow.occupation.dateScheduledForExport);
-            if (dateScheduledForExport && exportDateBelow < dateScheduledForExport) {
-                return true;
+            if (dateScheduledForExport && exportDateBelow < new Date(dateScheduledForExport)) {
+                // console.log("("+x+", "+y+", "+z+") : true")
+                score -= 10;
             }
         }
     }
-
-    return false;
+    // console.log("("+x+", "+y+", "+z+") : false")
+    return score;
 }
 
 function checkLocation(storageData, location, size, accessibility, currentLocation) {
