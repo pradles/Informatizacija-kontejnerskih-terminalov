@@ -186,6 +186,13 @@ export class StorageThreeDComponent implements AfterViewInit {
       }
     }
   }
+
+  public setAutoLocation(location: {x:number, y:number, z:number}) {
+    this.currentlyMoving = false;
+
+    this.storageForm.changeStoredAtValue(location.x, location.y, location.z);
+    this.moveContainer(location);
+  }
   
   private onDoubleClick(event: MouseEvent): void {
     // Prevent default action of double-click event to avoid interference
@@ -455,10 +462,6 @@ export class StorageThreeDComponent implements AfterViewInit {
           console.error('Failed to load models:', error);
         });
       } else {
-        console.log(position)
-        console.log(size)
-        console.log(accessibility)
-        console.log(typeof occupation)
         this.createContainer(position, size, accessibility, occupation);
         this.storageFormService.setPosition({ x: position.x, y: position.y, z: position.z });
       }

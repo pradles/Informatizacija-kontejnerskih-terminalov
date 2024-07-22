@@ -467,6 +467,7 @@ export class StorageFormComponent implements OnInit {
       this.autoLocate.autoLocate(autoLocateObj).subscribe({
         next: (res) => {
           console.log(res)
+          this.storageThreeD.setAutoLocation(res.data.location);
         },
         error: (err) => {
           console.log(err);
@@ -498,7 +499,6 @@ export class StorageFormComponent implements OnInit {
   checkPosition() {
     if (this.storageForm.value.currentlyStoredAtX != null && this.storageForm.value.currentlyStoredAtY != null && this.storageForm.value.currentlyStoredAtZ != null) {
       if (this.currentPosition.x == null || this.currentPosition.y == null || this.currentPosition.z == null) {
-        console.log("beki")
         this.storageThreeD.addContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ }, this.containerForm.value.size, this.containerForm.value.storageType, this.singleStorageData?._id); // Check if it's possible to place if it is set it there update currentPosition
       } else {
         this.storageThreeD.moveContainer({ x: this.storageForm.value.currentlyStoredAtX, y: this.storageForm.value.currentlyStoredAtY, z: this.storageForm.value.currentlyStoredAtZ });
