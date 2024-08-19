@@ -19,7 +19,7 @@ export class UsersComponent implements OnInit{
   roles: any = [];
 
   ngOnInit(): void {
-    this.roleService.getRolesService()
+    this.roleService.getAllRoles()
     .subscribe({
       next:(res)=>{
         console.log(res);

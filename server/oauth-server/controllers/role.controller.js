@@ -55,12 +55,24 @@ export const updateRole = async (req, res, next) => {
 
 export const getAllRoles = async (req, res, next)=>{
     try {
-        const roles = await Role.find({});
+        const roles = await Role.find({}).populate('terminals');
         return next(CreateSuccess(200, "Returned roles.", roles));
     } catch (error) {
         return next(CreateError(500, "Error getting all roles."));
     }
 }
+
+export const getRoleById = async (req, res, next)=>{
+    try {
+        const role = await Role.findById({_id: req.params.id}).populate('terminals');
+        if(role) 
+            return next(CreateSuccess(200, "Returned role by id", role));
+        return next(CreateError(404, "Role not found."));
+    } catch (error) {
+        return next(CreateError(500, "Error getting role by id."));
+    }
+}
+
 
 export const deleteRole = async (req, res, next)=>{
     try {

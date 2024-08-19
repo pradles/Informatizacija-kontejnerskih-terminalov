@@ -1,5 +1,5 @@
 import express from 'express';
-import { createRole, deleteRole, getAllRoles, updateRole } from '../controllers/role.controller.js';
+import { createRole, deleteRole, getAllRoles, getRoleById, updateRole } from '../controllers/role.controller.js';
 import { verifyAdmin } from '../utils/verifiedToken.js';
 
 const router = express.Router();
@@ -12,6 +12,9 @@ router.put('/update/:id', verifyAdmin, updateRole);
 
 // Get all roles in DB
 router.get('/getAll', verifyAdmin, getAllRoles);
+
+// Get role by ID
+router.get('/:id', verifyAdmin, getRoleById);
 
 // Delete role in DB
 router.delete("/deleteRole/:id", verifyAdmin, deleteRole);

@@ -1,0 +1,75 @@
+<div class="w-11/12">
+    <div class="bg-white shadow-sm rounded px-8 pt-6 pb-5 border border-gray-100 hover:shadow-md transition ease-in-out">
+        <h2 class="text-2xl mb-10">{{ isEditMode ? "Role information:" : "Create new role" }}</h2>
+
+        <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+            <div class="h-16 max-w-52">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="role" type="text" formControlName="role" placeholder="Role name">
+                <span *ngIf="roleForm.hasError('required', 'role') && (roleForm.controls['role'].dirty || roleFormSubmitted)" class="text-red-500">Name is required</span>
+            </div>
+
+            <div class="h-16 max-w-52">
+                <input 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                    name="terminal" 
+                    type="text" 
+                    formControlName="terminal" 
+                    placeholder="Search or Enter Container number"
+                    (input)="onSearchTerminal()"
+                    (focus)="onFocusDropdownTerminal()"
+                    (blur)="onBlurDropdownTerminal()"/>
+              
+                <div *ngIf="filteredTerminalId.length > 0 && terminalIdDropdown" class="bg-white border rounded min-w-52 py-2 px-3 absolute">
+                    <ul>
+                    <li *ngFor="let item of filteredTerminalId" (click)="selectItemTerminal(item)" class="cursor-pointer rounded-md hover:bg-gray-200 py-1 px-2">
+                        {{ item.label }}
+                    </li>
+                    </ul>
+                </div>
+              
+                <span
+                    *ngIf="roleForm.hasError('required', 'terminal') && (roleForm.controls['terminal'].dirty || roleFormSubmitted)" 
+                    class="text-red-500">
+                    Terminal required.
+                </span>
+                </div>
+
+                <div class="h-16 max-w-52">
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        name="access" 
+                        type="text" 
+                        formControlName="access" 
+                        placeholder="Search or Enter Container number"
+                        (input)="onSearchAccess()"
+                        (focus)="onFocusDropdownAccess()"
+                        (blur)="onBlurDropdownAccess()"/>
+                  
+                    <div *ngIf="filteredAccessId.length > 0 && accessIdDropdown" class="bg-white border rounded min-w-52 py-2 px-3 absolute">
+                        <ul>
+                        <li *ngFor="let item of filteredAccessId" (click)="selectItemAccess(item)" class="cursor-pointer rounded-md hover:bg-gray-200 py-1 px-2">
+                            {{ item.label }}
+                        </li>
+                        </ul>
+                    </div>
+                  
+                    <span
+                        *ngIf="roleForm.hasError('required', 'access') && (roleForm.controls['access'].dirty || roleFormSubmitted)" 
+                        class="text-red-500">
+                        Access required.
+                    </span>
+                    </div>
+
+            <button class="hidden" type="submit"></button>
+        </form>
+        <div class="flex flex-row space-x-5">
+            <div class="flex items-center justify-between mt-10">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="onSubmit()">{{ isEditMode ? "Update" : "Create" }}</button>
+            </div>
+            <div *ngIf="isEditMode" class="flex items-center justify-between mt-10">
+                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition ease-in-out delay-75" (click)="delete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+  

@@ -64,7 +64,7 @@ export class RoleSelectionComponent implements OnInit{
   }
 
   ngOnInit(): void {
-    this.roleService.getRolesService()
+    this.roleService.getAllRoles()
     .subscribe({
       next:(res)=>{
         console.log(res);

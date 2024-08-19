@@ -8,6 +8,7 @@ import { PageContainerComponent } from './core/container/pages/page-container/pa
 import { PageStorageComponent } from './core/storage/pages/page-storage/page-storage.component';
 import { PageUserComponent } from './core/user/pages/page-user/page-user.component';
 import { PageOwnerComponent } from './core/owner/pages/page-owner/page-owner.component';
+import { PageRoleComponent } from './core/role/pages/page-role/page-role.component';
 import { UserRole } from './core/authentication/services/auth.service';
 import { AuthGuard } from './core/authentication/guard/auth.guard';
 
@@ -44,4 +45,8 @@ export const routes: Routes = [
     { path: 'owner', component: PageOwnerComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'owner/:ownerId', component: PageOwnerComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'all-owners', component: PageOwnerComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
+
+    { path: 'role', component: PageRoleComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
+    { path: 'role/:roleId', component: PageRoleComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
+    { path: 'all-roles', component: PageRoleComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
 ];

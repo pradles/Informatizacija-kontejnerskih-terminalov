@@ -8,8 +8,20 @@ import { apiUrls } from '../../../api.urls';
 export class RoleServiceService {
     http = inject(HttpClient);
 
-    getRolesService() {
+    getAllRoles() {
       return this.http.get<any>(`${apiUrls.RoleServiceApi}getAll`, {withCredentials:true} );
+    }
+  
+    addRole(roleObj: any) {
+      return this.http.post<any>(`${apiUrls.RoleServiceApi}create`, roleObj, {withCredentials:true} );
+    }
+  
+    updateRole(roleObj: any, roleId: string) {
+      return this.http.put<any>(`${apiUrls.RoleServiceApi}update/${roleId}`, roleObj, {withCredentials:true} );
+    }
+  
+    getRoleById(roleId: string) {
+      return this.http.get<any>(`${apiUrls.RoleServiceApi}${roleId}`, {withCredentials:true} );
     }
 
 }
