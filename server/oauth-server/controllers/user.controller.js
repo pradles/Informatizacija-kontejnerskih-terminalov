@@ -94,3 +94,29 @@ export const updateUser = async (req, res, next) => {
         return next(CreateError(500, "Error updating user."));
     }
 }
+
+export const getUsersByTerminalId = async (req, res, next) => {
+    try {
+        const terminalId = req.params.terminalId; // Extract terminal ID from request params
+
+        // Find all roles that include the specified terminal ID
+        const roles = await Role.find({ terminals: terminalId }).select('_id');
+        if (roles.length === 0) {
+            return next(CreateError(404, "No roles found for this terminal."));
+        }
+
+        const roleIds = roles.map(role => role._id); // Extract role IDs from the roles
+
+        // Find all users who have any of the found roles
+        const users = await User.find({ roles: { $in: roleIds } });
+
+        if (users.length > 0) {
+            return next(CreateSuccess(200, `Users found for terminal ${terminalId}`, users));
+        } else {
+            return next(CreateError(404, "No users found with roles for this terminal."));
+        }
+    } catch (error) {
+        console.error("Error fetching users for terminal:", error);
+        return next(CreateError(500, "Error fetching users for terminal."));
+    }
+};

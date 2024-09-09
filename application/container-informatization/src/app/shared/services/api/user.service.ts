@@ -20,4 +20,9 @@ export class UserService {
     return this.http.put<any>(`${apiUrls.UserServiceApi}update`, userObj, {withCredentials:true} );
   }
 
+  getUsersByTerminalId(terminalId: string) {
+    return this.http.get<any>(`${apiUrls.UserServiceApi}by-terminal/${terminalId}`, {withCredentials:true} );
+  }
+
+
 }

@@ -1,6 +1,6 @@
 import express from 'express';
-import { createRole, deleteRole, getAllRoles, getRoleById, updateRole } from '../controllers/role.controller.js';
-import { verifyAdmin } from '../utils/verifiedToken.js';
+import { createRole, deleteRole, getAllRoles, getRoleById, getRolesByTerminalId, updateRole } from '../controllers/role.controller.js';
+import { verifyAdmin, verifyRole, verifyRoleMod } from '../utils/verifiedToken.js';
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/create', verifyAdmin, createRole);
 
 // Upadte role in DB
-router.put('/update/:id', verifyAdmin, updateRole);
+router.put('/update/:id', verifyRoleMod, updateRole);
 
 // Get all roles in DB
 router.get('/getAll', verifyAdmin, getAllRoles);
@@ -18,6 +18,10 @@ router.get('/:id', verifyAdmin, getRoleById);
 
 // Delete role in DB
 router.delete("/deleteRole/:id", verifyAdmin, deleteRole);
+
+// Get all roles in terminal
+router.get('/terminal/:terminalId', verifyRoleMod, getRolesByTerminalId);
+
 
 
 

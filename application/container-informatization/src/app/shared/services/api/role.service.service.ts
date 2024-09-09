@@ -23,5 +23,9 @@ export class RoleServiceService {
     getRoleById(roleId: string) {
       return this.http.get<any>(`${apiUrls.RoleServiceApi}${roleId}`, {withCredentials:true} );
     }
+    
+    getRoleByTerminalId(terminalId: string) {
+      return this.http.get<any>(`${apiUrls.RoleServiceApi}terminal/${terminalId}`, {withCredentials:true} );
+    }
 
 }

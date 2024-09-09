@@ -13,12 +13,14 @@ import { UserRole } from './core/authentication/services/auth.service';
 import { AuthGuard } from './core/authentication/guard/auth.guard';
 
 export const routes: Routes = [
+    { path: '',   redirectTo: '/login', pathMatch: 'full' },
     { path: 'login', component: PageAuthComponent},
     { path: 'register', component: PageAuthComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
     { path: 'forgot-password', component: PageAuthComponent},
     { path: 'reset-password/:token', component: PageAuthComponent},
 
     { path: 'test', component: TestComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator] }},
+    // { path: '**', component: TestComponent },
 
     { path: 'dashboard', component: PageDashboardComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'dashboard/:terminalName', component: PageDashboardComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},

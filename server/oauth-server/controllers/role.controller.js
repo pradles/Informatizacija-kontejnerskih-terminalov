@@ -88,3 +88,21 @@ export const deleteRole = async (req, res, next)=>{
         return next(CreateError(500, "Error deleting role."));
     }
 }
+
+export const getRolesByTerminalId = async (req, res, next) => {
+    try {
+        const terminalId = req.params.terminalId; // Extract terminal ID from request params
+
+        // Find all roles that have this terminal ID in the terminals array
+        const roles = await Role.find({ terminals: terminalId }).populate('terminals');
+
+        if (roles.length > 0) {
+            return next(CreateSuccess(200, `Roles found for terminal ${terminalId}`, roles));
+        } else {
+            return next(CreateError(404, "No roles found for this terminal."));
+        }
+    } catch (error) {
+        console.error("Error fetching roles for terminal:", error);
+        return next(CreateError(500, "Error fetching roles for terminal."));
+    }
+};

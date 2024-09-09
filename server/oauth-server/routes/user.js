@@ -1,6 +1,6 @@
 import express from 'express';
-import { getAllUsers, getUserById, getUserTerminals, updateUser } from '../controllers/user.controller.js';
-import { verifyAdmin, verifyUser } from '../utils/verifiedToken.js';
+import { getAllUsers, getUserById, getUsersByTerminalId, getUserTerminals, updateUser } from '../controllers/user.controller.js';
+import { verifyAdmin, verifyRoleMod, verifyUser } from '../utils/verifiedToken.js';
 
 const router = express.Router();
 
@@ -16,6 +16,7 @@ router.get('/terminal/:id', verifyUser, getUserTerminals);
 // Update user
 router.put('/update', verifyAdmin, updateUser);
 
-
+// Route to get users by terminal ID
+router.get('/by-terminal/:terminalId', verifyRoleMod, getUsersByTerminalId);
 
 export default router;
