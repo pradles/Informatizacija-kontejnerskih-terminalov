@@ -5,8 +5,6 @@ const ContainerSchema = mongoose.Schema(
         containerNumber: {
             type: Number,
             required: true,
-            unique: true,
-            index: true
         },
         size: {
             type: Number,

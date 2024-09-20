@@ -33,9 +33,10 @@ export const autoLocate = async (req, res, next) => {
     }
 };
 
-function findBestLocation(storageData, size, accessibility, ownerId, dateScheduledForExport, currentPosition) {
+function findBestLocation(storageData, size, accessibility, ownerId, dateScheduledForExport, currentPosition, fillRate) {
     let bestLocation = null;
     let currentScore = null;
+
     for (let x = 0; x < storageData.length; x++) {
         for (let y = 0; y < storageData[x].length; y++) {
             for (let z = 0; z < storageData[x][y].length; z++) {
@@ -47,22 +48,40 @@ function findBestLocation(storageData, size, accessibility, ownerId, dateSchedul
                     continue;
                 }
 
-                // Check owner clustering
+                // Calculate scores for each factor
                 const ownerClusterScore = calculateOwnerClusterScore(storageData, location, ownerId);
-                
-                // Check export date conflicts
                 const exportDateScore = calculateExportDateScore(storageData, location, dateScheduledForExport);
-                
-                // Determine if this is a better location
-                if (currentScore == null || currentScore < (ownerClusterScore + exportDateScore)) {
-                    currentScore = ownerClusterScore + exportDateScore;
+                const reshufflingPenalty = calculateReshufflingPenalty(storageData, location, size);
+                const energyEfficiencyScore = calculateEnergyEfficiencyScore(storageData, location, fillRate);
+                const accessibilityScore = calculateAccessibilityClusteringScore(storageData, location, accessibility);
+
+                // Calculate the overall score with weights for each factor
+                const totalScore = (ownerClusterScore * 0.3) + (exportDateScore * 0.3) + (energyEfficiencyScore * 0.2) - (reshufflingPenalty * 0.2) + (accessibilityScore * 0.2);
+
+                // Check if this is the best location so far
+                if (currentScore == null || currentScore < totalScore) {
+                    currentScore = totalScore;
                     bestLocation = location;
                 }
             }
         }
     }
-    // console.log(bestLocation)
+
     return bestLocation;
+}
+
+function calculateReshufflingPenalty(storageData, location, size) {
+    const { x, y, z } = location;
+    let penalty = 0;
+
+    // Penalize if there are containers stacked above the current location (reshuffling needed)
+    for (let dz = z + 1; dz < storageData[x][y].length; dz++) {
+        if (storageData[x][y][dz].occupation) {
+            penalty += 5; // Add reshuffling penalty for each container above
+        }
+    }
+
+    return penalty;
 }
 
 function calculateOwnerClusterScore(storageData, location, owner) {
@@ -92,23 +111,55 @@ function calculateOwnerClusterScore(storageData, location, owner) {
     //     console.log("("+x+", "+y+", "+z+") : "+score)
     return score;
 }
-
 function calculateExportDateScore(storageData, location, dateScheduledForExport) {
     const { x, y, z } = location;
     let score = 0;
 
-    // Check the export dates of the cells below the current cell
-    for (let dz = 0; dz < z; dz++) {
+    // Give higher score if nearby containers have similar export dates
+    for (let dz = 0; dz <= z; dz++) {
         const cellBelow = storageData[x][y][dz];
         if (cellBelow && cellBelow.occupation && cellBelow.occupation.dateScheduledForExport) {
             const exportDateBelow = new Date(cellBelow.occupation.dateScheduledForExport);
-            if (dateScheduledForExport && exportDateBelow < new Date(dateScheduledForExport)) {
-                // console.log("("+x+", "+y+", "+z+") : true")
-                score -= 10;
+            if (dateScheduledForExport && Math.abs(exportDateBelow - new Date(dateScheduledForExport)) < 7 * 24 * 60 * 60 * 1000) {
+                // Boost score if export date is within 7 days
+                score += 10;
             }
         }
     }
-    // console.log("("+x+", "+y+", "+z+") : false")
+
+    return score;
+}
+
+function calculateEnergyEfficiencyScore(storageData, location, fillRate) {
+    const { x, y, z } = location;
+    let score = 0;
+
+    // Energy efficiency improves if the container is closer to the top and easy to access
+    score += (storageData[x][y].length - z); // Higher score for containers closer to the top
+
+    // If the yard fill rate is high, prefer locations that require fewer moves
+    if (fillRate > 0.75) {
+        score += 5; // Boost score in highly filled yard
+    }
+
+    return score;
+}
+
+function calculateAccessibilityClusteringScore(storageData, location, accessibility) {
+    const { x, y, z } = location;
+    let score = 0;
+
+    // Check surrounding cells for similar accessibility
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (storageData[nx] && storageData[nx][ny] && storageData[nx][ny][z] && storageData[nx][ny][z].accessibility == accessibility) {
+                score += 1; // Boost score for nearby containers with similar accessibility
+            }
+        }
+    }
+
     return score;
 }
 
