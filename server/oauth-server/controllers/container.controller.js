@@ -63,5 +63,17 @@ export const getContainerById = async (req, res, next)=>{
     }
 }
 
+export const deleteContainer = async (req, res, next) => {
+    try {
+        const deletedContainer = await Container.findByIdAndDelete(req.params.id);
+        if (deletedContainer) {
+            return next(CreateSuccess(200, "Container deleted successfully."));
+        } else {
+            return next(CreateError(404, "Container not found."));
+        }
+    } catch (error) {
+        return next(CreateError(500, "Error deleting container."));
+    }
+};
 
 

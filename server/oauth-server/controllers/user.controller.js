@@ -120,3 +120,16 @@ export const getUsersByTerminalId = async (req, res, next) => {
         return next(CreateError(500, "Error fetching users for terminal."));
     }
 };
+
+export const deleteUser = async (req, res, next) => {
+    try {
+        const deletedUser = await User.findByIdAndDelete(req.params.id);
+        if (deletedUser) {
+            return next(CreateSuccess(200, "User deleted successfully."));
+        } else {
+            return next(CreateError(404, "User not found."));
+        }
+    } catch (error) {
+        return next(CreateError(500, "Error deleting user."));
+    }
+};

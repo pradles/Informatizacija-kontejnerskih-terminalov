@@ -51,5 +51,17 @@ export const getOwnerById = async (req, res, next)=>{
     }
 }
 
+export const deleteOwner = async (req, res, next) => {
+    try {
+        const deletedOwner = await Owner.findByIdAndDelete(req.params.id);
+        if (deletedOwner) {
+            return next(CreateSuccess(200, "Owner deleted successfully."));
+        } else {
+            return next(CreateError(404, "Owner not found."));
+        }
+    } catch (error) {
+        return next(CreateError(500, "Error deleting owner."));
+    }
+};
 
 

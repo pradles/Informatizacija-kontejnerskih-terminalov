@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { verifyAdmin, verifyRole, verifyUser } from '../utils/verifiedToken.js';
-import { addContainer, getAllContainers, getContainerById, updateContainer } from '../controllers/container.controller.js';
+import { addContainer, deleteContainer, getAllContainers, getContainerById, updateContainer } from '../controllers/container.controller.js';
 
 const router = express.Router();
 
@@ -16,6 +16,9 @@ router.get('/', verifyRole, getAllContainers);
 
 // Get container by id
 router.get('/:id', verifyRole, getContainerById);
+
+// Delete Conntainer by Id
+router.delete('/delete/:id', verifyAdmin, deleteContainer);
 
 
 export default router;

@@ -24,5 +24,9 @@ export class UserService {
     return this.http.get<any>(`${apiUrls.UserServiceApi}by-terminal/${terminalId}`, {withCredentials:true} );
   }
 
+  deleteUser(userId: string) {
+    return this.http.delete<any>(`${apiUrls.UserServiceApi}delete/${userId}`, {withCredentials:true} );
+  }
+
 
 }

@@ -23,5 +23,9 @@ export class OwnerService {
   getOwnerById(ownerId: string) {
     return this.http.get<any>(`${apiUrls.OwnerServiceApi}${ownerId}`, {withCredentials:true} );
   }
+
+  deleteOwner(ownerId: string) {
+    return this.http.delete<any>(`${apiUrls.OwnerServiceApi}delete/${ownerId}`, {withCredentials:true} );
+  }
 }
 

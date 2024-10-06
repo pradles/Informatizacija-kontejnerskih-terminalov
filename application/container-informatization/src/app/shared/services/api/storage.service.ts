@@ -30,6 +30,10 @@ export class StorageService {
 
   getStorageRecordById(storageRecordId: string) {
     return this.http.get<any>(`${apiUrls.StorageServiceApi}${storageRecordId}`, {withCredentials:true} );
-
   }
+
+  exportStorage(storageIds: any[], terminalId: string){
+    return this.http.put<any>(`${apiUrls.StorageServiceApi}export`, {storageIds, terminalId}, {withCredentials:true} );
+  }
+
 }

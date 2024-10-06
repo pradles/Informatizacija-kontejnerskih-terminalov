@@ -17,7 +17,7 @@ router.get('/getAll', verifyAdmin, getAllRoles);
 router.get('/:id', verifyAdmin, getRoleById);
 
 // Delete role in DB
-router.delete("/deleteRole/:id", verifyAdmin, deleteRole);
+router.delete("/delete/:id", verifyAdmin, deleteRole);
 
 // Get all roles in terminal
 router.get('/terminal/:terminalId', verifyRoleMod, getRolesByTerminalId);

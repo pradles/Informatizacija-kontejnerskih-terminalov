@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { verifyRole } from '../utils/verifiedToken.js';
-import { createStorageRecord, getAllStorageRecords, getStorageRecordsById, getTerminalStorageRecords, updateStorageRecord, updateStorageRecords } from '../controllers/storage.controller.js';
+import { createStorageRecord, exportStorageRecords, getAllStorageRecords, getStorageRecordsById, getTerminalStorageRecords, updateStorageRecord, updateStorageRecords } from '../controllers/storage.controller.js';
 
 const router = express.Router();
 
@@ -23,5 +23,7 @@ router.get('/terminal/:id', verifyRole, getTerminalStorageRecords);
 // Get terminal storage by id
 router.get('/:id', verifyRole, getStorageRecordsById);
 
+// export container storage records and containers in array 
+router.put('/export', verifyRole, exportStorageRecords);
 
 export default router;

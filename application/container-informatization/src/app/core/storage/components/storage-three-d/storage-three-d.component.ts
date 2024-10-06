@@ -563,6 +563,10 @@ export class StorageThreeDComponent implements AfterViewInit {
             if (this.terminalData[x][y][i]?.mesh) {
               this.terminalData[x][y][i].mesh.position.y -= 2.9;
               this.terminalData[x][y][i - 1] = this.terminalData[x][y][i];
+              if(this.terminalData[x][y][i].size == 2){
+                this.terminalData[x][y+1][i - 1] = this.terminalData[x][y+1][i];
+                this.terminalData[x][y+1][i] = { occupation: null, size: null, mesh: undefined, accessibility: this.terminalData[x][y+1][i - 1].accessibility };
+              }
               this.terminalData[x][y][i] = { occupation: null, size: null, mesh: undefined, accessibility: this.terminalData[x][y][i - 1].accessibility };
               this.storageForm.changeStoredAtValueWithId(this.terminalData[x][y][i-1].occupation, {x: x, y:y, z: i-1})
             }

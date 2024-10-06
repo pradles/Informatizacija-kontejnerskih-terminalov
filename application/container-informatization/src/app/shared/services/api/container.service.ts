@@ -23,5 +23,9 @@ export class ContainerService {
   getContainerById(containerId: string) {
     return this.http.get<any>(`${apiUrls.ContainerServiceApi}${containerId}`, {withCredentials:true} );
   }
+
+  deleteContainer(containerId: string) {
+    return this.http.delete<any>(`${apiUrls.ContainerServiceApi}delete/${containerId}`, {withCredentials:true} );
+  }
 }
 

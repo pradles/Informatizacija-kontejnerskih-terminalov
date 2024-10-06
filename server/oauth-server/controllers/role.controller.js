@@ -73,21 +73,18 @@ export const getRoleById = async (req, res, next)=>{
     }
 }
 
-
-export const deleteRole = async (req, res, next)=>{
+export const deleteRole = async (req, res, next) => {
     try {
-        const roleId = req.params.id;
-        const role = await Role.findById({_id: roleId});
-        if(role){
-            await Role.findByIdAndDelete(roleId);
-            return next(CreateSuccess(200, "Role deleted."));
+        const deletedRole = await Role.findByIdAndDelete(req.params.id);
+        if (deletedRole) {
+            return next(CreateSuccess(200, "Role deleted successfully."));
         } else {
             return next(CreateError(404, "Role not found."));
         }
     } catch (error) {
         return next(CreateError(500, "Error deleting role."));
     }
-}
+};
 
 export const getRolesByTerminalId = async (req, res, next) => {
     try {

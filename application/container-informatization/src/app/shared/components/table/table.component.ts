@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { TableService } from './table.service';
 
 
 @Component({
@@ -15,6 +16,7 @@ export class TableComponent implements OnInit{
   data: any[] = [];
   dataType: string = '';
   selectedRows: any[] = [];
+  tableService = inject(TableService);
 
   setTableData(providedData: any, providedDataType: string) {
     this.data = providedData;
@@ -86,8 +88,12 @@ export class TableComponent implements OnInit{
     return false;
   }
 
-  delete() {
-    // call the appropriate delete function based on this.dataType
+  delete(data: any) {
+    if(this.selectedRows.length > 0){
+      this.tableService.handleDataOperation(this.dataType, this.selectedRows);
+    } else {
+      this.tableService.handleDataOperation(this.dataType, [data]);
+    }
   }
 
   transformColumnName(column: string | null): string {

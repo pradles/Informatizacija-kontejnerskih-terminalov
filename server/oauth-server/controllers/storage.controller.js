@@ -220,3 +220,91 @@ export const updateStorageRecords = async (req, res, next) => {
         return next(CreateError(500, "Error updating storage records"));
     }
 };
+
+
+export const exportStorageRecords = async (req, res, next) => {
+    try {
+        const { storageIds, terminalId } = req.body; // Extract storageIds from the request body
+  
+        // Loop through each storageId and update the storage records
+        for (const storage of storageIds) {  // Use a regular for-loop instead of Promise.all
+            const storageRecord = await Storage.findById(storage._id);
+
+            if (!storageRecord) {
+                throw new Error(`Storage record with ID ${storage._id} not found`);
+            }
+
+            // Extract container location from storage
+            const containerLocation = storage.containerLocation.split('\n').map(x => x.trim());
+            const [x, y, z] = containerLocation.map(Number); // Extract coordinates from container location
+            console.log(x, y, z);
+
+            // Wait for the container to be removed before proceeding
+            await removeContainerFrom3d({ x, y, z }, terminalId);
+            
+            // Update the storage record in the database
+            await Storage.findByIdAndUpdate(
+                storage._id, // Find the storage by its _id
+                {
+                    dateExported: new Date(), // Set the current time as dateExported
+                    currentlyStoredAt: { x: null, y: null, z: null },  // Set containerLocation to null
+                },
+                { new: true } // Optionally return the updated document
+            );
+        }
+  
+        // If everything goes well, send a success response
+        return next(CreateSuccess(200, "Storage records updated successfully."));
+    } catch (error) {
+        // Handle errors and send error response
+        console.error('Error exporting storage records:', error);
+        return next(CreateError(500, "Error exporting storage records."));
+    }
+};
+
+
+const removeContainerFrom3d = async (position, terminalId) => {
+    const { x, y, z } = position;
+
+    // Find the terminal by its ID
+    const terminal = await Terminal.findById(terminalId);
+  
+    if (!terminal) {
+        throw new Error(`Terminal with ID ${terminalId} not found`);
+    }
+
+    // Remove the container
+    terminal.array3D[x][y][z] = { occupation: null, size: null, mesh: undefined, accessibility: terminal.array3D[x][y][z].accessibility };
+    if (terminal.array3D[x][y][z].size === 2)
+        terminal.array3D[x][y+1][z] = { occupation: null, size: null, mesh: undefined, accessibility: terminal.array3D[x][y+1][z].accessibility };
+    console.log(terminal.array3D[x][y][z], "the postition:", x, y, z)
+
+    // Move containers above the current one down by one
+    for (let i = z + 1; i < terminal.array3D[x][y].length; i++) {
+        if (terminal.array3D[x][y][i].occupation != null) {
+            // Move the container down
+            terminal.array3D[x][y][i - 1] = terminal.array3D[x][y][i];
+            console.log("Moved container down to ", x, y, i - 1);
+            
+            // Check for size and move if necessary
+            if (terminal.array3D[x][y][i].size === 2) {
+                terminal.array3D[x][y + 1][i - 1] = terminal.array3D[x][y + 1][i];
+                console.log("Moved container2 down to ", x, y + 1, i - 1);
+                terminal.array3D[x][y + 1][i] = { occupation: null, size: null, mesh: undefined, accessibility: terminal.array3D[x][y + 1][i - 1].accessibility };
+            }
+            terminal.array3D[x][y][i] = { occupation: null, size: null, mesh: undefined, accessibility: terminal.array3D[x][y][i - 1].accessibility };
+            
+            // Update the corresponding storage record
+            const storageId = terminal.array3D[x][y][i - 1].occupation; // Get the occupation id from the moved container
+            await Storage.findByIdAndUpdate(storageId, { currentlyStoredAt: { x, y, z: i - 1 } });
+            console.log(`Updated storage record with ID ${storageId} to new position: { x: ${x}, y: ${y}, z: ${i - 1} }`);
+        }
+    }
+
+    // After moving the containers, save the updated array3D back to the terminal
+    await Terminal.findByIdAndUpdate(terminalId, { array3D: terminal.array3D }, { new: true });
+    console.log(`Updated array3D for terminal ID ${terminalId}`);
+    return;
+};
+
+

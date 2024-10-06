@@ -28,4 +28,8 @@ export class RoleServiceService {
       return this.http.get<any>(`${apiUrls.RoleServiceApi}terminal/${terminalId}`, {withCredentials:true} );
     }
 
+    deleteRole(roleId: string) {
+      return this.http.delete<any>(`${apiUrls.RoleServiceApi}delete/${roleId}`, {withCredentials:true} );
+    }
+
 }
