@@ -20,7 +20,6 @@ export const routes: Routes = [
     { path: 'reset-password/:token', component: PageAuthComponent},
 
     { path: 'test', component: TestComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator] }},
-    // { path: '**', component: TestComponent },
 
     { path: 'dashboard', component: PageDashboardComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'dashboard/:terminalName', component: PageDashboardComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
@@ -51,4 +50,7 @@ export const routes: Routes = [
     { path: 'role', component: PageRoleComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'role/:roleId', component: PageRoleComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin, UserRole.Moderator, UserRole.User] }},
     { path: 'all-roles', component: PageRoleComponent, canActivate: [AuthGuard], data: { expectedRoles: [UserRole.Admin] }},
+
+    { path: '**', component: TestComponent },
+
 ];
